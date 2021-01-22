@@ -115,8 +115,10 @@ class DeviceTreeManage {
       const guid = data.find((e) => {
         return e.name === "gUID";
       });
-
-      if (build && room && guid) {
+      const cabinetName = data.find((e) => {
+        return e.name === "cabinetName";
+      });
+      if (build && room && guid && cabinetName) {
         const isInDoor: boolean = build.value !== "" ? true : false;
         const DoorType: string = build.value !== "" ? "室内" : "室外";
         const newBuild = {
@@ -140,7 +142,7 @@ class DeviceTreeManage {
         }
         const newDevice = {
           parent: room.value,
-          child: guid.value,
+          child: cabinetName.value,
           tag: DeviceRelevantIdentifier.device,
           elementId: element.ElementId,
         };
