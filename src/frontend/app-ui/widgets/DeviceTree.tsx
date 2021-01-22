@@ -1,6 +1,8 @@
 import {
+  BeButtonEvent,
   EmphasizeElements,
   FeatureOverrideType,
+  HitDetail,
   IModelApp,
   ScreenViewport,
 } from "@bentley/imodeljs-frontend";
@@ -264,14 +266,18 @@ class DeviceTreeManage {
 
   public static async HandleSelectedDevice(elementId: string) {
     const imodel = IModelApp.viewManager.selectedView?.view.iModel;
-    const prop = imodel?.getRpcProps();
-    const ids = await PropertiesRpcInterface.getClient().getElementChildIds(
-      prop!,
-      elementId
-    );
-    const vp = IModelApp.viewManager.selectedView!;
-    changeColor(vp, ids);
-    vp.zoomToElements(ids, { animateFrustumChange: true });
+    if (imodel) {
+      imodel.selectionSet.emptyAll();
+      imodel.hilited.clear();
+      const prop = imodel?.getRpcProps();
+      const ids = await PropertiesRpcInterface.getClient().getElementChildIds(
+        prop!,
+        elementId
+      );
+      const vp = IModelApp.viewManager.selectedView!;
+      changeColor(vp, ids);
+      vp.zoomToElements(ids, { animateFrustumChange: true });
+    }
   }
 }
 
@@ -289,4 +295,31 @@ export async function getTopAssemblyProperties(
       instanceId
     );
   } catch (error) {}
+}
+
+export async function SelectElement(_ev: BeButtonEvent, currHit?: HitDetail) {
+  const vp = IModelApp.viewManager.selectedView!;
+  const imodel = IModelApp.viewManager.selectedView?.view.iModel;
+  if (imodel) {
+    imodel.selectionSet.emptyAll();
+    imodel.hilited.clear();
+  }
+  const emph = EmphasizeElements.getOrCreate(vp);
+  emph.wantEmphasis = true;
+  const om = emph.getOverriddenElements();
+  if (om?.values !== undefined) {
+    om.forEach((_idSet, key) => {
+      emph.clearOverriddenElements(vp, key);
+    });
+  }
+  if (currHit && currHit.isElementHit && imodel) {
+    const prop = imodel.getRpcProps();
+    const ids = await PropertiesRpcInterface.getClient().getDeviceAllChildElements(
+      prop!,
+      currHit.sourceId
+    );
+    if (ids.length !== 0) {
+      changeColor(vp, ids);
+    }
+  }
 }

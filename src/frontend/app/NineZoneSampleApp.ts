@@ -7,11 +7,17 @@ import { FrontendAuthorizationClient } from "@bentley/frontend-authorization-cli
 import { IModelBankClient } from "@bentley/imodelhub-client";
 import { IModelBankBasicAuthorizationClient } from "@bentley/imodelhub-client/lib/imodelbank/IModelBankBasicAuthorizationClient";
 import { BentleyCloudRpcManager } from "@bentley/imodeljs-common";
-import { IModelApp, IModelAppOptions, QuantityFormatter } from "@bentley/imodeljs-frontend";
+import {
+  IModelApp,
+  IModelAppOptions,
+  QuantityFormatter,
+} from "@bentley/imodeljs-frontend";
 import { Presentation } from "@bentley/presentation-frontend";
 import { AppNotificationManager, UiFramework } from "@bentley/ui-framework";
 import { getSupportedRpcs } from "../../common/rpcs";
+import { SelectElement } from "../app-ui/widgets/DeviceTree";
 import { AppState, AppStore } from "./AppState";
+import { ITwinWebAccuSnap } from "./ITwinWebAccuSnap";
 
 /**
  * List of possible backends that ninezone-sample-app can use
@@ -41,7 +47,6 @@ export class NineZoneSampleApp {
     opts.notifications = new AppNotificationManager();
     opts.applicationVersion = "1.0.0";
     const url = Config.App.get("imjs_imodelbank_url");
-    //const url = "http://114.116.240.10:4000";
     const imodelClient = new IModelBankClient(url, undefined);
     opts.imodelClient = imodelClient;
     // iTwinStack: Setup IModelBankBasicAuthorizationClient from username and password in config
@@ -54,6 +59,8 @@ export class NineZoneSampleApp {
     //此处QuantityFormatter类是imodel系统类，实际可能以用户自定义子类去实例化。
     const quantityFormatter = new QuantityFormatter();
     opts.quantityFormatter = quantityFormatter;
+    const accuSnap = new ITwinWebAccuSnap();
+    opts.accuSnap = accuSnap;
     await IModelApp.startup(opts);
     await IModelApp.authorizationClient?.signIn(new ClientRequestContext());
     // contains various initialization promises which need
@@ -84,12 +91,16 @@ export class NineZoneSampleApp {
 
     // the app is ready when all initialization promises are fulfilled
     await Promise.all(initPromises);
+    (IModelApp.accuSnap as ITwinWebAccuSnap).onDataButtonDown.addListener(
+      SelectElement
+    );
   }
   private static async registerTool() {
     await IModelApp.i18n.registerNamespace("NineZoneSample").readFinished;
   }
   private static async initializeRpc(): Promise<void> {
     const rpcInterfaces = getSupportedRpcs();
+    const backendURL = Config.App.get("imjs_backend_url");
     const rpcParams = {
       info: { title: "ninezone-sample-app", version: "v1.0" },
       uriPrefix: backendURL,
@@ -98,5 +109,4 @@ export class NineZoneSampleApp {
   }
 }
 
-//const backendURL = "http://114.116.240.10:3001";
-const backendURL = "http://localhost:3001";
+

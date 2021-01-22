@@ -62,17 +62,12 @@ export default class App extends React.Component<{}, AppState> {
     try {
       {
         // attempt to open the imodel
-        const contextId = "9374a302-8743-403e-ad03-6c49ef13c15e";
-        const imodelId = "d477f96a-b21f-4e7b-9865-d6df63bb9e3b";
-
-        // const imjs_test_context_id = "a3e76ac4-5222-4274-97f8-8fb7b60602f5";
-        // const imjs_test_imodel_id = "16af800a-a81f-4a72-82cc-011b7875a3b1";
+        const contextId = Config.App.get("imjs_contextId_1");
+        const imodelId = Config.App.get("imjs_imodelId_1");
         imodel = await RemoteBriefcaseConnection.open(
           contextId,
           imodelId,
-          // imjs_test_context_id,
-          // imjs_test_imodel_id,
-          OpenMode.ReadWrite
+          OpenMode.Readonly
         );
         this._onIModelSelected(imodel);
       }
@@ -166,14 +161,6 @@ export default class App extends React.Component<{}, AppState> {
       alert(e.message);
     }
   };
-
-  private get _signInRedirectUri() {
-    const split = (Config.App.get(
-      "imjs_browser_test_redirect_uri"
-    ) as string).split("://");
-    return split[split.length - 1];
-  }
-
   private delayedInitialization() {
     if (this.state.offlineIModel) {
       // WORKAROUND: Clear authorization client if operating in offline mode
@@ -186,13 +173,7 @@ export default class App extends React.Component<{}, AppState> {
     let ui: React.ReactNode;
     let style: React.CSSProperties = {};
 
-    if (
-      this.state.user.isLoading ||
-      window.location.href.includes(this._signInRedirectUri)
-    ) {
-      // if user is currently being loaded, just tell that
-      ui = `${IModelApp.i18n.translate("NineZoneSample:signing-in")}...`;
-    } else if (!this.state.user.isAuthorized && !this.state.offlineIModel) {
+    if (!this.state.user.isAuthorized && !this.state.offlineIModel) {
       // if user doesn't have an access token, show sign in page
       // Only call with onOffline prop for electron mode since this is not a valid option for Web apps
       if (ElectronRpcConfiguration.isElectron)

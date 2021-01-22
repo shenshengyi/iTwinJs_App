@@ -126,6 +126,30 @@ export function getElementChildIds(db: IModelDb, elementId: string) {
   }
   return ids;
 }
+export function getDeviceAllChildElements(
+  db: IModelDb,
+  elementId: string
+): string[] {
+  const aspects = getOneDeviceAspects(db, elementId);
+  if (
+    aspects &&
+    aspects.length === 2 &&
+    aspects[0].children &&
+    aspects[0].children.length === 6 &&
+    aspects[1].children &&
+    aspects[1].children.length === 14
+  ) {
+    //是设备元素;
+    const data = aspects[1].children;
+    const value = data.find((e) => {
+      return e.name === "deviceName";
+    });
+    if (value) {
+      return getElementChildIds(db, elementId);
+    }
+  }
+  return [];
+}
 export function getDeviceAspects(db: IModelDb) {
   const ids = db.queryEntityIds({
     from: PhysicalObject.classFullName,

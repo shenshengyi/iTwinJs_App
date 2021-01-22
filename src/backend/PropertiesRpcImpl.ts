@@ -74,6 +74,18 @@ export class PropertiesRpcImpl extends PropertiesRpcInterface {
     }
     return propertiesRpcService.getElementChildIds(db, elementId);
   }
+
+  /**如果_elementId为设备Element的Id，则返回当前设备的所有Child Element的id集合，否则返回为空 */
+  public async getDeviceAllChildElements(
+    token: IModelRpcProps,
+    _elementId: string
+  ): Promise<string[]> {
+    const db = IModelDb.tryFindByKey(token.key);
+    if (!db) {
+      throw new Error("Failed to find db");
+    }
+    return propertiesRpcService.getDeviceAllChildElements(db, _elementId);
+  }
 }
 
 // Implement RobotWorldReadRpcInterface

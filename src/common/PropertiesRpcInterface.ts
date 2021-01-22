@@ -42,6 +42,13 @@ export class PropertiesRpcInterface extends RpcInterface {
   public getElementChildIds(_token: IModelRpcProps, _elementId: string) {
     return this.forward(arguments);
   }
+  /**如果_elementId为设备Element的Id，则返回当前设备的所有Child Element的id集合，否则返回为空 */
+  public getDeviceAllChildElements(
+    _token: IModelRpcProps,
+    _elementId: string
+  ): Promise<string[]> {
+    return this.forward(arguments);
+  }
 }
 
 // The RPC query interface that may be exposed by the RobotWorldEngine.
