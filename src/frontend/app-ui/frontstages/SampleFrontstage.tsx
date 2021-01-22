@@ -1,14 +1,41 @@
 /*---------------------------------------------------------------------------------------------
-* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
-* See LICENSE.md in the project root for license terms and full copyright notice.
-*--------------------------------------------------------------------------------------------*/
+ * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+ * See LICENSE.md in the project root for license terms and full copyright notice.
+ *--------------------------------------------------------------------------------------------*/
 import { ViewState } from "@bentley/imodeljs-frontend";
 import { StatusBarSection } from "@bentley/ui-abstract";
 import {
+  BasicToolWidget,
   ConfigurableUiManager,
-  ContentGroup, ContentLayoutDef, ContentViewManager, CoreTools, CustomItemDef, DefaultNavigationWidget, Frontstage,
-  FrontstageProvider, IModelConnectedNavigationWidget, IModelConnectedViewSelector, IModelViewportControl,
-  ItemList, SelectionInfoField, SnapModeField, StagePanel, StatusBarComposer, StatusBarItem, StatusBarItemUtilities, StatusBarWidgetControl, StatusBarWidgetControlArgs, SyncUiEventId, TileLoadingIndicator, ToolWidget, UiFramework, ViewAttributesStatusField, Widget, WidgetState, withStatusFieldProps, Zone, ZoneState,
+  ContentGroup,
+  ContentLayoutDef,
+  ContentViewManager,
+  CoreTools,
+  CustomItemDef,
+  DefaultNavigationWidget,
+  Frontstage,
+  FrontstageProvider,
+  IModelConnectedNavigationWidget,
+  IModelConnectedViewSelector,
+  IModelViewportControl,
+  ItemList,
+  SelectionInfoField,
+  SnapModeField,
+  StagePanel,
+  StatusBarComposer,
+  StatusBarItem,
+  StatusBarItemUtilities,
+  StatusBarWidgetControl,
+  StatusBarWidgetControlArgs,
+  SyncUiEventId,
+  ToolWidget,
+  UiFramework,
+  ViewAttributesStatusField,
+  Widget,
+  WidgetState,
+  withStatusFieldProps,
+  Zone,
+  ZoneState,
 } from "@bentley/ui-framework";
 import * as React from "react";
 import { AppUi } from "../AppUi";
@@ -33,9 +60,7 @@ export class SampleFrontstage extends FrontstageProvider {
     super();
 
     // Create the content layouts.
-    this._contentLayoutDef = new ContentLayoutDef({
-      // horizontalSplit: { percentage: 0.75, top: 0, bottom: 1 },
-    });
+    this._contentLayoutDef = new ContentLayoutDef({});
 
     // Create the content group.
     this._contentGroup = new ContentGroup({
@@ -47,26 +72,32 @@ export class SampleFrontstage extends FrontstageProvider {
             iModelConnection: UiFramework.getIModelConnection(),
           },
         },
-        // {
-        //   classId: TableContent,
-        //   applicationData: {
-        //     iModelConnection: UiFramework.getIModelConnection(),
-        //   },
-        // },
       ],
     });
   }
 
   /** Define the Frontstage properties */
   public get frontstage() {
-
     return (
       <Frontstage
         id="SampleFrontstage"
         defaultTool={CoreTools.selectElementCommand}
+        toolSettings={<Zone widgets={[<Widget isToolSettings={true} />]} />}
         defaultLayout={this._contentLayoutDef}
         contentGroup={this._contentGroup}
         isInFooterMode={true}
+        contentManipulationTools={
+          <Zone
+            widgets={[
+              <Widget
+                isFreeform={true}
+                element={
+                  <BasicToolWidget showCategoryAndModelsContextTools={true} />
+                }
+              />,
+            ]}
+          />
+        }
         topLeft={
           <Zone
             widgets={[
@@ -187,10 +218,14 @@ export class SampleFrontstage extends FrontstageProvider {
   /** Determine the WidgetState based on the Selection Set */
   private _determineWidgetStateForSelectionSet = (): WidgetState => {
     const activeContentControl = ContentViewManager.getActiveContentControl();
-    if (activeContentControl && activeContentControl.viewport && (activeContentControl.viewport.view.iModel.selectionSet.size > 0))
+    if (
+      activeContentControl &&
+      activeContentControl.viewport &&
+      activeContentControl.viewport.view.iModel.selectionSet.size > 0
+    )
       return WidgetState.Open;
     return WidgetState.Closed;
-  }
+  };
 
   /** Get the CustomItemDef for ViewSelector  */
   private get _viewSelectorItemDef() {
@@ -198,23 +233,19 @@ export class SampleFrontstage extends FrontstageProvider {
       customId: "sampleApp:viewSelector",
       reactElement: (
         <IModelConnectedViewSelector
-          listenForShowUpdates={false}  // Demo for showing only the same type of view in ViewSelector - See IModelViewport.tsx, onActivated
+          listenForShowUpdates={false} // Demo for showing only the same type of view in ViewSelector - See IModelViewport.tsx, onActivated
         />
       ),
     });
   }
-
 }
 
 /**
  * Define a ToolWidget with Buttons to display in the TopLeft zone.
  */
 class SampleToolWidget extends React.Component {
-
   public render(): React.ReactNode {
-    const horizontalItems = new ItemList([
-      CoreTools.selectElementCommand,
-    ]);
+    const horizontalItems = new ItemList([CoreTools.selectElementCommand]);
 
     return (
       <ToolWidget
@@ -224,7 +255,6 @@ class SampleToolWidget extends React.Component {
     );
   }
 }
-
 
 export class SmallStatusBarWidgetControl1 extends StatusBarWidgetControl {
   private _statusBarItems: StatusBarItem[] | undefined;

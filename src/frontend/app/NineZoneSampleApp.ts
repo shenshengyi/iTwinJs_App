@@ -7,7 +7,7 @@ import { FrontendAuthorizationClient } from "@bentley/frontend-authorization-cli
 import { IModelBankClient } from "@bentley/imodelhub-client";
 import { IModelBankBasicAuthorizationClient } from "@bentley/imodelhub-client/lib/imodelbank/IModelBankBasicAuthorizationClient";
 import { BentleyCloudRpcManager } from "@bentley/imodeljs-common";
-import { IModelApp, IModelAppOptions } from "@bentley/imodeljs-frontend";
+import { IModelApp, IModelAppOptions, QuantityFormatter } from "@bentley/imodeljs-frontend";
 import { Presentation } from "@bentley/presentation-frontend";
 import { AppNotificationManager, UiFramework } from "@bentley/ui-framework";
 import { getSupportedRpcs } from "../../common/rpcs";
@@ -51,10 +51,11 @@ export class NineZoneSampleApp {
       { id: Guid.createValue() },
       { email, password }
     );
-
+    //此处QuantityFormatter类是imodel系统类，实际可能以用户自定义子类去实例化。
+    const quantityFormatter = new QuantityFormatter();
+    opts.quantityFormatter = quantityFormatter;
     await IModelApp.startup(opts);
     await IModelApp.authorizationClient?.signIn(new ClientRequestContext());
-
     // contains various initialization promises which need
     // to be fulfilled before the app is ready
     const initPromises = new Array<Promise<any>>();
@@ -72,6 +73,7 @@ export class NineZoneSampleApp {
 
     // initialize UiFramework
     initPromises.push(UiFramework.initialize(this.store, IModelApp.i18n));
+    IModelApp.quantityFormatter.useImperialFormats = false;
     initPromises.push(NineZoneSampleApp.registerTool());
     // initialize Presentation
     initPromises.push(
