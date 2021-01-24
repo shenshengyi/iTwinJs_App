@@ -142,7 +142,7 @@ export class SampleFrontstage extends FrontstageProvider {
         }
         centerLeft={
           <Zone
-            defaultState={ZoneState.Minimized}
+            defaultState={ZoneState.Open}
             allowsMerging={true}
             widgets={[
               <Widget

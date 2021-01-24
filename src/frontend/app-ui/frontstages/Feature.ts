@@ -1,5 +1,5 @@
 import { Config } from "@bentley/bentleyjs-core";
-import { IModelApp } from "@bentley/imodeljs-frontend";
+import { IModelApp, ViewGlobeBirdTool } from "@bentley/imodeljs-frontend";
 import {
   CommandItemDef,
   ItemList,
@@ -41,14 +41,22 @@ export class TestFeature {
       "控制地面和天空",
       ControlMapAndSky
     ),
+    TestFeature.CreateCommand(
+      "ViewGlobeBirdToolRun",
+      "鸟瞰",
+      ViewGlobeBirdToolRun
+    ),
   ]);
 }
 
+async function ViewGlobeBirdToolRun() {
+  IModelApp.tools.run(ViewGlobeBirdTool.toolId);
+}
 async function ControlMapAndSky() {
   let vp = IModelApp.viewManager.selectedView!;
   let vf = vp.view.viewFlags.clone();
   vf.backgroundMap = !vf.backgroundMap;
-  vf.shadows=!vf.shadows;
+  vf.shadows = !vf.shadows;
   vp.viewFlags = vf;
 }
 export async function TestSerializationView() {
@@ -66,6 +74,9 @@ export async function TestDeSerializationView() {
   const strViewProp = await SVTRpcInterface.getClient().readExternalSavedViews(
     savedViewFilePath
   );
+  if (strViewProp === "") {
+    return;
+  }
   const vp = IModelApp.viewManager.selectedView!;
   const viewProp: SavedViewProps = JSON.parse(strViewProp);
   const imodel = UiFramework.getIModelConnection()!;

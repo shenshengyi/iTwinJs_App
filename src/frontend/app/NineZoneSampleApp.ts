@@ -11,6 +11,7 @@ import {
   IModelApp,
   IModelAppOptions,
   QuantityFormatter,
+  ViewGlobeBirdTool,
 } from "@bentley/imodeljs-frontend";
 import { Presentation } from "@bentley/presentation-frontend";
 import { AppNotificationManager, UiFramework } from "@bentley/ui-framework";
@@ -97,6 +98,8 @@ export class NineZoneSampleApp {
   }
   private static async registerTool() {
     await IModelApp.i18n.registerNamespace("NineZoneSample").readFinished;
+    await ViewGlobeBirdTool.i18n.registerNamespace("NineZoneSample")
+      .readFinished;
   }
   private static async initializeRpc(): Promise<void> {
     const rpcInterfaces = getSupportedRpcs();
@@ -108,5 +111,3 @@ export class NineZoneSampleApp {
     BentleyCloudRpcManager.initializeClient(rpcParams, rpcInterfaces);
   }
 }
-
-
