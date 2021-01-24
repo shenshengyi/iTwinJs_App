@@ -5,6 +5,7 @@
 import { ViewState } from "@bentley/imodeljs-frontend";
 import { StatusBarSection } from "@bentley/ui-abstract";
 import {
+  BasicNavigationWidget,
   BasicToolWidget,
   ConfigurableUiManager,
   ContentGroup,
@@ -19,6 +20,7 @@ import {
   IModelConnectedViewSelector,
   IModelViewportControl,
   ItemList,
+  ReviewToolWidget,
   SelectionInfoField,
   SnapModeField,
   StagePanel,
@@ -28,6 +30,7 @@ import {
   StatusBarWidgetControl,
   StatusBarWidgetControlArgs,
   SyncUiEventId,
+  ToolbarHelper,
   ToolWidget,
   UiFramework,
   ViewAttributesStatusField,
@@ -86,18 +89,6 @@ export class SampleFrontstage extends FrontstageProvider {
         defaultLayout={this._contentLayoutDef}
         contentGroup={this._contentGroup}
         isInFooterMode={true}
-        contentManipulationTools={
-          <Zone
-            widgets={[
-              <Widget
-                isFreeform={true}
-                element={
-                  <BasicToolWidget showCategoryAndModelsContextTools={true} />
-                }
-              />,
-            ]}
-          />
-        }
         topLeft={
           <Zone
             widgets={[
@@ -113,10 +104,11 @@ export class SampleFrontstage extends FrontstageProvider {
               <Widget
                 isFreeform={true}
                 element={
-                  <IModelConnectedNavigationWidget
-                    suffixVerticalItems={
-                      new ItemList([this._viewSelectorItemDef])
-                    }
+                  <BasicNavigationWidget
+                    additionalVerticalItems={ToolbarHelper.createToolbarItemsFromItemDefs(
+                      [this._viewSelectorItemDef],
+                      30
+                    )}
                   />
                 }
               />,
@@ -197,20 +189,6 @@ export class SampleFrontstage extends FrontstageProvider {
             ]}
           />
         }
-        viewNavigationTools={
-          <Zone
-            widgets={[
-              <Widget
-                isFreeform={true}
-                element={
-                  <DefaultNavigationWidget
-                    suffixVerticalItems={TestFeature.ItemLists}
-                  />
-                }
-              />,
-            ]}
-          />
-        }
       />
     );
   }
@@ -245,17 +223,10 @@ export class SampleFrontstage extends FrontstageProvider {
  */
 class SampleToolWidget extends React.Component {
   public render(): React.ReactNode {
-    const horizontalItems = new ItemList([CoreTools.selectElementCommand]);
-
-    return (
-      <ToolWidget
-        appButton={AppUi.backstageToggleCommand}
-        horizontalItems={horizontalItems}
-      />
-    );
+    const horizontalItems = new ItemList([...TestFeature.ItemLists]);
+    return <ReviewToolWidget suffixVerticalItems={horizontalItems} />;
   }
 }
-
 export class SmallStatusBarWidgetControl1 extends StatusBarWidgetControl {
   private _statusBarItems: StatusBarItem[] | undefined;
 
@@ -268,79 +239,13 @@ export class SmallStatusBarWidgetControl1 extends StatusBarWidgetControl {
     const SelectionInfo = withStatusFieldProps(SelectionInfoField);
     // tslint:disable-next-line: variable-name
     if (!this._statusBarItems) {
-      // const isHiddenCondition = new ConditionalBooleanValue(
-      //   () => SampleAppIModelApp.getTestProperty() === "HIDE",
-      //   [SampleAppUiActionId.setTestProperty]
-      // );
-
       this._statusBarItems = [
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "ToolAssistance",
-        //   StatusBarSection.Left,
-        //   10,
-        //   <ToolAssistance style={{ minWidth: "21em" }} />
-        // ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "ToolAssistanceSeparator",
-        //   StatusBarSection.Left,
-        //   15,
-        //   <FooterMode>
-        //     {" "}
-        //     <FooterSeparator />{" "}
-        //   </FooterMode>
-        // ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "MessageCenter",
-        //   StatusBarSection.Left,
-        //   20,
-        //   <MessageCenter />
-        // ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "MessageCenterSeparator",
-        //   StatusBarSection.Left,
-        //   25,
-        //   <FooterMode>
-        //     {" "}
-        //     <FooterSeparator />{" "}
-        //   </FooterMode>
-        // ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "DisplayStyle",
-        //   StatusBarSection.Center,
-        //   40,
-        //   <DisplayStyle />
-        // ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "ActivityCenter",
-        //   StatusBarSection.Center,
-        //   10,
-        //   <ActivityCenter />
-        // ),
         StatusBarItemUtilities.createStatusBarItem(
           "ViewAttributes",
           StatusBarSection.Center,
           60,
           <ViewAttributes />
         ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "Sections",
-        //   StatusBarSection.Center,
-        //   50,
-        //   <Sections hideWhenUnused={true} />
-        // ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "ClearEmphasis",
-        //   StatusBarSection.Center,
-        //   40,
-        //   <ClearEmphasis hideWhenUnused={true} />
-        // ),
-        // StatusBarItemUtilities.createStatusBarItem(
-        //   "SnapMode",
-        //   StatusBarSection.Center,
-        //   30,
-        //   <SnapMode />,
-        //   { isHidden: false }
-        // ),
         StatusBarItemUtilities.createStatusBarItem(
           "SnapAttributes",
           StatusBarSection.Left,

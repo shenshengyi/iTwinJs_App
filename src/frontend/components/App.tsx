@@ -5,15 +5,12 @@
 import { Config, OpenMode } from "@bentley/bentleyjs-core";
 // make sure webfont brings in the icons and css files.
 import "@bentley/icons-generic-webfont/dist/bentley-icons-generic-webfont.css";
-import { ElectronRpcConfiguration } from "@bentley/imodeljs-common";
 import {
-  FrontendRequestContext,
   IModelApp,
   IModelConnection,
   RemoteBriefcaseConnection,
   ViewState,
 } from "@bentley/imodeljs-frontend";
-import { SignIn } from "@bentley/ui-components";
 import { ConfigurableUiContent, UiFramework } from "@bentley/ui-framework";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -92,22 +89,6 @@ export default class App extends React.Component<{}, AppState> {
     }));
   };
 
-  private _onRegister = () => {
-    window.open("https://git.io/fx8YP", "_blank");
-  };
-
-  private _onOffline = () => {
-    this.setState((prev) => ({
-      user: { ...prev.user, isLoading: false },
-      offlineIModel: true,
-    }));
-  };
-
-  private _onStartSignin = async () => {
-    this.setState((prev) => ({ user: { ...prev.user, isLoading: true } }));
-    await NineZoneSampleApp.oidcClient.signIn(new FrontendRequestContext());
-  };
-
   /** Pick the first two available spatial, orthographic or drawing view definitions in the imodel */
   private async getFirstTwoViewDefinitions(
     imodel: IModelConnection
@@ -173,25 +154,7 @@ export default class App extends React.Component<{}, AppState> {
     let ui: React.ReactNode;
     let style: React.CSSProperties = {};
 
-    if (!this.state.user.isAuthorized && !this.state.offlineIModel) {
-      // if user doesn't have an access token, show sign in page
-      // Only call with onOffline prop for electron mode since this is not a valid option for Web apps
-      if (ElectronRpcConfiguration.isElectron)
-        ui = (
-          <SignIn
-            onSignIn={this._onStartSignin}
-            onRegister={this._onRegister}
-            onOffline={this._onOffline}
-          />
-        );
-      else
-        ui = (
-          <SignIn
-            onSignIn={this._onStartSignin}
-            onRegister={this._onRegister}
-          />
-        );
-    } else if (!this.state.imodel || !this.state.viewStates) {
+    if (!this.state.imodel || !this.state.viewStates) {
       // NOTE: We needed to delay some initialization until now so we know if we are opening a snapshot or an imodel.
       this.delayedInitialization();
       // if we don't have an imodel / view definition id - render a button that initiates imodel open
