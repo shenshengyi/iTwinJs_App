@@ -17,6 +17,7 @@ import { Presentation } from "@bentley/presentation-frontend";
 import { AppNotificationManager, UiFramework } from "@bentley/ui-framework";
 import { getSupportedRpcs } from "../../common/rpcs";
 import { SelectElement } from "../app-ui/widgets/DeviceTree";
+import { WalkRoundTool } from "../feature/WalkRound";
 import { AppState, AppStore } from "./AppState";
 import { ITwinWebAccuSnap } from "./ITwinWebAccuSnap";
 
@@ -98,8 +99,8 @@ export class NineZoneSampleApp {
   }
   private static async registerTool() {
     await IModelApp.i18n.registerNamespace("NineZoneSample").readFinished;
-    await ViewGlobeBirdTool.i18n.registerNamespace("NineZoneSample")
-      .readFinished;
+    ViewGlobeBirdTool.register(IModelApp.i18n.getNamespace("NineZoneSample"));
+    WalkRoundTool.register(IModelApp.i18n.getNamespace("NineZoneSample"));
   }
   private static async initializeRpc(): Promise<void> {
     const rpcInterfaces = getSupportedRpcs();

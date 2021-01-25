@@ -8,6 +8,7 @@ import {
   UiFramework,
 } from "@bentley/ui-framework";
 import SVTRpcInterface from "../../../common/SVTRpcInterface";
+import { TeskWalkRound } from "../../feature/WalkRound";
 
 export class TestFeature {
   public static CreateCommand(
@@ -46,6 +47,7 @@ export class TestFeature {
       "鸟瞰",
       ViewGlobeBirdToolRun
     ),
+    TestFeature.CreateCommand("TeskWalkRound","漫游",TeskWalkRound),
   ]);
 }
 
