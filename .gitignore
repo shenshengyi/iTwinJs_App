@@ -49,3 +49,4 @@ react-app-env.d.ts
 # misc
 *.TileCache*
 *.Tiles
+*.sv

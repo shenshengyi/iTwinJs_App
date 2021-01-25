@@ -47,7 +47,7 @@ export class TestFeature {
       "鸟瞰",
       ViewGlobeBirdToolRun
     ),
-    TestFeature.CreateCommand("TeskWalkRound","漫游",TeskWalkRound),
+    TestFeature.CreateCommand("TeskWalkRound", "漫游", TeskWalkRound),
   ]);
 }
 
@@ -62,17 +62,24 @@ async function ControlMapAndSky() {
   vp.viewFlags = vf;
 }
 export async function TestSerializationView() {
+  const savedViewFilePath = getSavedViewFilePath();
+  if (!savedViewFilePath) {
+    return;
+  }
   const vp = IModelApp.viewManager.selectedView!.view;
   const viewProp = SavedView.viewStateToProps(vp);
   const strViewProp = JSON.stringify(viewProp);
-  const savedViewFilePath = Config.App.get("imjs_savedview_file");
+
   await SVTRpcInterface.getClient().writeExternalSavedViews(
     savedViewFilePath,
     strViewProp
   );
 }
 export async function TestDeSerializationView() {
-  const savedViewFilePath = Config.App.get("imjs_savedview_file");
+  const savedViewFilePath = getSavedViewFilePath();
+  if (!savedViewFilePath) {
+    return;
+  }
   const strViewProp = await SVTRpcInterface.getClient().readExternalSavedViews(
     savedViewFilePath
   );
@@ -86,4 +93,14 @@ export async function TestDeSerializationView() {
   if (viewState) {
     vp.changeView(viewState);
   }
+}
+
+function getSavedViewFilePath() {
+  const imodel = UiFramework.getIModelConnection();
+  if (imodel) {
+    const savedViewFilePath = Config.App.get("imjs_savedview_file");
+    const path = savedViewFilePath + "/" + imodel.iModelId;
+    return path;
+  }
+  return undefined;
 }
