@@ -6,17 +6,14 @@ import { ViewState } from "@bentley/imodeljs-frontend";
 import { StatusBarSection } from "@bentley/ui-abstract";
 import {
   BasicNavigationWidget,
-  BasicToolWidget,
   ConfigurableUiManager,
   ContentGroup,
   ContentLayoutDef,
   ContentViewManager,
   CoreTools,
   CustomItemDef,
-  DefaultNavigationWidget,
   Frontstage,
   FrontstageProvider,
-  IModelConnectedNavigationWidget,
   IModelConnectedViewSelector,
   IModelViewportControl,
   ItemList,
@@ -31,7 +28,6 @@ import {
   StatusBarWidgetControlArgs,
   SyncUiEventId,
   ToolbarHelper,
-  ToolWidget,
   UiFramework,
   ViewAttributesStatusField,
   Widget,
@@ -41,7 +37,6 @@ import {
   ZoneState,
 } from "@bentley/ui-framework";
 import * as React from "react";
-import { AppUi } from "../AppUi";
 import { AppStatusBarWidget } from "../statusbars/AppStatusBar";
 import { PropertyGridWidget } from "../widgets/PropertyGridWidget";
 import { DeviceWidget, TreeWidget } from "../widgets/TreeWidget";

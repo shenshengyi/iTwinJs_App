@@ -13,9 +13,10 @@ import {
 } from "@bentley/imodeljs-frontend";
 import { ConfigurableUiContent, UiFramework } from "@bentley/ui-framework";
 import * as React from "react";
-import { Provider } from "react-redux";
+import { connect, Provider } from "react-redux";
 import { AppUi } from "../app-ui/AppUi";
 import { AppBackstageComposer } from "../app-ui/backstage/AppBackstageComposer";
+import { RootState } from "../app/AppState";
 import { NineZoneSampleApp } from "../app/NineZoneSampleApp";
 import "./App.css";
 
@@ -29,95 +30,29 @@ export interface AppState {
   imodel?: IModelConnection;
   viewStates?: ViewState[];
 }
-
+interface AppProp {
+  imodel: IModelConnection;
+}
 /** A component the renders the whole application UI */
-export default class App extends React.Component<{}, AppState> {
+export default class App extends React.Component<AppProp, AppState> {
   /** Creates an App instance */
-  constructor(props?: any, context?: any) {
-    super(props, context);
+  constructor(props: AppProp) {
+    super(props);
     this.state = {
       user: {
         isAuthorized: NineZoneSampleApp.oidcClient.isAuthorized,
         isLoading: false,
       },
       offlineIModel: false,
-      imodel: undefined,
+      imodel: props.imodel,
       viewStates: undefined,
     };
   }
 
   public componentDidMount() {
-    NineZoneSampleApp.oidcClient.onUserStateChanged.addListener(
-      this._onUserStateChanged
-    );
-    (async () => {
-      this.testOpen();
-    })();
+    this._onIModelSelected(this.props.imodel);
   }
-  private async testOpen() {
-    let imodel: IModelConnection | undefined;
-    try {
-      {
-        // attempt to open the imodel
-        const contextId = Config.App.get("imjs_contextId_1");
-        const imodelId = Config.App.get("imjs_imodelId_1");
-        imodel = await RemoteBriefcaseConnection.open(
-          contextId,
-          imodelId,
-          OpenMode.Readonly
-        );
-        this._onIModelSelected(imodel);
-      }
-    } catch (e) {
-      alert(e.message);
-    }
-  }
-  public componentWillUnmount() {
-    // unsubscribe from unified selection changes
-    NineZoneSampleApp.oidcClient.onUserStateChanged.removeListener(
-      this._onUserStateChanged
-    );
-  }
-
-  private _onUserStateChanged = () => {
-    this.setState((prev) => ({
-      user: {
-        ...prev.user,
-        isAuthorized: NineZoneSampleApp.oidcClient.isAuthorized,
-        isLoading: false,
-      },
-    }));
-  };
-
-  /** Pick the first two available spatial, orthographic or drawing view definitions in the imodel */
-  private async getFirstTwoViewDefinitions(
-    imodel: IModelConnection
-  ): Promise<ViewState[]> {
-    const viewSpecs = await imodel.views.queryProps({});
-    const acceptedViewClasses = [
-      "BisCore:SpatialViewDefinition",
-      "BisCore:DrawingViewDefinition",
-      "BisCore:OrthographicViewDefinition",
-    ];
-    const acceptedViewSpecs = viewSpecs.filter(
-      (spec) => -1 !== acceptedViewClasses.indexOf(spec.classFullName)
-    );
-    if (1 > acceptedViewSpecs.length)
-      throw new Error("No valid view definitions in imodel");
-
-    const viewStates: ViewState[] = [];
-    for (const viewDef of acceptedViewSpecs) {
-      const viewState = await imodel.views.load(viewDef.id!);
-      viewStates.push(viewState);
-    }
-
-    if (1 === acceptedViewSpecs.length) {
-      const viewState = await imodel.views.load(acceptedViewSpecs[0].id!);
-      viewStates.push(viewState);
-    }
-
-    return viewStates;
-  }
+  private async testOpen() {}
 
   /** Handle iModel open event */
   private _onIModelSelected = async (imodel: IModelConnection | undefined) => {
@@ -129,7 +64,7 @@ export default class App extends React.Component<{}, AppState> {
     }
     try {
       // attempt to get ViewState for the first two available view definitions
-      const viewStates = await this.getFirstTwoViewDefinitions(imodel);
+      const viewStates = await AppUi.getFirstTwoViewDefinitions(imodel);
       if (viewStates) {
         this.setState({ imodel, viewStates }, () => {
           AppUi.handleIModelViewsSelected(imodel, viewStates);
@@ -167,16 +102,12 @@ export default class App extends React.Component<{}, AppState> {
 
     // render the app
     return (
-      <Provider store={NineZoneSampleApp.store}>
-        <div className="App">
-          <div className="Header" style={style}>
-            <h2>
-              {IModelApp.i18n.translate("NineZoneSample:welcome-message")}
-            </h2>
-          </div>
-          {ui}
+      <div className="App">
+        <div className="Header" style={style}>
+          <h2>{IModelApp.i18n.translate("NineZoneSample:welcome-message")}</h2>
         </div>
-      </Provider>
+        {ui}
+      </div>
     );
   }
 }
@@ -187,3 +118,10 @@ class IModelComponents extends React.PureComponent {
     return <ConfigurableUiContent appBackstage={<AppBackstageComposer />} />;
   }
 }
+
+function mapStateToProps(state: RootState) {
+  const frameworkState = state.frameworkState;
+  if (!frameworkState) return undefined;
+  return { imodel: frameworkState.sessionState.iModelConnection! };
+}
+export const AppComposer = connect(mapStateToProps)(App); // eslint-disable-line @typescript-eslint/naming-convention
