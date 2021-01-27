@@ -2,18 +2,16 @@
  * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
  * See LICENSE.md in the project root for license terms and full copyright notice.
  *--------------------------------------------------------------------------------------------*/
-import { Config, OpenMode } from "@bentley/bentleyjs-core";
 // make sure webfont brings in the icons and css files.
 import "@bentley/icons-generic-webfont/dist/bentley-icons-generic-webfont.css";
 import {
   IModelApp,
   IModelConnection,
-  RemoteBriefcaseConnection,
   ViewState,
 } from "@bentley/imodeljs-frontend";
 import { ConfigurableUiContent, UiFramework } from "@bentley/ui-framework";
 import * as React from "react";
-import { connect, Provider } from "react-redux";
+import { connect } from "react-redux";
 import { AppUi } from "../app-ui/AppUi";
 import { AppBackstageComposer } from "../app-ui/backstage/AppBackstageComposer";
 import { RootState } from "../app/AppState";
@@ -52,7 +50,6 @@ export default class App extends React.Component<AppProp, AppState> {
   public componentDidMount() {
     this._onIModelSelected(this.props.imodel);
   }
-  private async testOpen() {}
 
   /** Handle iModel open event */
   private _onIModelSelected = async (imodel: IModelConnection | undefined) => {

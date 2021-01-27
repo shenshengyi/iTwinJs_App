@@ -1,5 +1,10 @@
 import { Config } from "@bentley/bentleyjs-core";
-import { IModelApp, ViewGlobeBirdTool } from "@bentley/imodeljs-frontend";
+import {
+  IModelApp,
+  ViewClipClearTool,
+  ViewClipDecorationProvider,
+  ViewGlobeBirdTool,
+} from "@bentley/imodeljs-frontend";
 import {
   CommandItemDef,
   ItemList,
@@ -27,6 +32,7 @@ export class TestFeature {
     return testV1Def;
   }
   public static ItemLists = new ItemList([
+    TestFeature.CreateCommand("ClearClip", "清除剖析", ClearClip),
     TestFeature.CreateCommand(
       "TestDeSerializationView",
       "切换到保存视图",
@@ -48,9 +54,18 @@ export class TestFeature {
       ViewGlobeBirdToolRun
     ),
     TestFeature.CreateCommand("TeskWalkRound", "漫游", TeskWalkRound),
+    // TestFeature.CreateCommand("Test", "Test", Test),
   ]);
 }
 
+async function ClearClip() {
+  const vp = IModelApp.viewManager.selectedView;
+  if (vp) {
+    IModelApp.tools.run(ViewClipClearTool.toolId);
+    ViewClipDecorationProvider.create().toggleDecoration(vp);
+  }
+}
+async function Test() {}
 async function ViewGlobeBirdToolRun() {
   IModelApp.tools.run(ViewGlobeBirdTool.toolId);
 }

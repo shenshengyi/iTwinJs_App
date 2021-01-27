@@ -3,9 +3,8 @@
  * See LICENSE.md in the project root for license terms and full copyright notice.
  *--------------------------------------------------------------------------------------------*/
 
-import { IModelApp } from "@bentley/imodeljs-frontend";
 import { BackstageItem, BackstageItemUtilities } from "@bentley/ui-abstract";
-import { FrontstageManager, UiFramework } from "@bentley/ui-framework";
+import { UiFramework } from "@bentley/ui-framework";
 import { AppUi } from "../AppUi";
 
 export class AppBackstageItemProvider {

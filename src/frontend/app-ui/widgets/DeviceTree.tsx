@@ -5,6 +5,8 @@ import {
   HitDetail,
   IModelApp,
   ScreenViewport,
+  SelectionSetEvent,
+  SelectionSetEventType,
 } from "@bentley/imodeljs-frontend";
 import { useEffect, useState } from "react";
 import * as React from "react";
@@ -71,6 +73,7 @@ export function DeviceTree() {
     <Tree
       multiple
       defaultExpandAll={true}
+      defaultExpandParent={true}
       treeData={treeData}
       showLine={true}
       autoExpandParent={true}
@@ -79,7 +82,9 @@ export function DeviceTree() {
     />
   );
 }
-
+function test(){
+  return (<div><Tree></Tree></div>);
+}
 interface DeviceDataType {
   parent: string;
   child: string;
@@ -322,6 +327,21 @@ export async function SelectElement(_ev: BeButtonEvent, currHit?: HitDetail) {
     );
     if (ids.length !== 0) {
       changeColor(vp, ids);
+    }
+  }
+}
+export function ClearSelectedDevice(ev: SelectionSetEvent) {
+  if (ev.type === SelectionSetEventType.Clear) {
+    const vp = IModelApp.viewManager.selectedView;
+    if (vp) {
+      const emph = EmphasizeElements.getOrCreate(vp);
+      emph.wantEmphasis = true;
+      const om = emph.getOverriddenElements();
+      if (om?.values !== undefined) {
+        om.forEach((_idSet, key) => {
+          emph.clearOverriddenElements(vp, key);
+        });
+      }
     }
   }
 }

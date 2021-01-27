@@ -19,6 +19,7 @@ import {
 } from "@bentley/ui-framework";
 import { TestDeSerializationView } from "./frontstages/Feature";
 import { SampleFrontstage } from "./frontstages/SampleFrontstage";
+import { ClearSelectedDevice } from "./widgets/DeviceTree";
 interface iModelIdentifier {
   contextId: string;
   imodelId: string;
@@ -65,6 +66,7 @@ export class AppUi {
     const currentIModelConnection = UiFramework.getIModelConnection();
     if (currentIModelConnection) {
       SyncUiEventDispatcher.clearConnectionEvents(currentIModelConnection);
+      currentIModelConnection.selectionSet.onChanged.clear();
       await currentIModelConnection.close();
     }
     // attempt to open the imodel
@@ -74,6 +76,7 @@ export class AppUi {
       imodelIdentifier.imodelId,
       OpenMode.Readonly
     );
+    imodel.selectionSet.onChanged.addListener(ClearSelectedDevice);
     UiFramework.setIModelConnection(imodel, true);
   }
   // Command that toggles the backstage
