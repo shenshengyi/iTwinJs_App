@@ -1,8 +1,9 @@
 /*---------------------------------------------------------------------------------------------
-* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
-* See LICENSE.md in the project root for license terms and full copyright notice.
-*--------------------------------------------------------------------------------------------*/
+ * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+ * See LICENSE.md in the project root for license terms and full copyright notice.
+ *--------------------------------------------------------------------------------------------*/
 import { ConfigurableCreateInfo, WidgetControl } from "@bentley/ui-framework";
+import { AutoComplete } from "antd";
 import * as React from "react";
 import SimpleTreeComponent from "../../components/Tree";
 import { DeviceTree } from "./DeviceTree";
@@ -13,11 +14,12 @@ export class TreeWidget extends WidgetControl {
     super(info, options);
 
     if (options.iModelConnection) {
-      this.reactNode = <SimpleTreeComponent imodel={options.iModelConnection} />;
+      this.reactNode = (
+        <SimpleTreeComponent imodel={options.iModelConnection} />
+      );
     }
   }
 }
-
 
 /** A widget control for displaying the Tree React component */
 export class DeviceWidget extends WidgetControl {
@@ -25,7 +27,11 @@ export class DeviceWidget extends WidgetControl {
     super(info, options);
 
     if (options.iModelConnection) {
-      this.reactNode = <DeviceTree  />;
+      this.reactNode = (
+        <div style={{ overflow: "auto" }}>
+          <DeviceTree />
+        </div>
+      );
     }
   }
 }
