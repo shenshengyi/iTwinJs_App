@@ -39,6 +39,7 @@ import {
 import * as React from "react";
 import { AppStatusBarWidget } from "../statusbars/AppStatusBar";
 import { PropertyGridWidget } from "../widgets/PropertyGridWidget";
+import { RenderModeInfoField } from "../widgets/TableWidget";
 import { DeviceWidget, TreeWidget } from "../widgets/TreeWidget";
 import { TestFeature } from "./Feature";
 
@@ -232,6 +233,7 @@ export class SmallStatusBarWidgetControl1 extends StatusBarWidgetControl {
     const ViewAttributes = withStatusFieldProps(ViewAttributesStatusField);
     // tslint:disable-next-line: variable-name
     const SelectionInfo = withStatusFieldProps(SelectionInfoField);
+    const RenderModeInfo = withStatusFieldProps(RenderModeInfoField);
     // tslint:disable-next-line: variable-name
     if (!this._statusBarItems) {
       this._statusBarItems = [
@@ -252,6 +254,12 @@ export class SmallStatusBarWidgetControl1 extends StatusBarWidgetControl {
           StatusBarSection.Right,
           20,
           <SelectionInfo />
+        ),
+        StatusBarItemUtilities.createStatusBarItem(
+          "RenderModeInfo",
+          StatusBarSection.Left,
+          30,
+          <RenderModeInfo />
         ),
       ];
     }
