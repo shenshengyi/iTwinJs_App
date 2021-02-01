@@ -126,6 +126,29 @@ export function getElementChildIds(db: IModelDb, elementId: string) {
   }
   return ids;
 }
+export function getParentElementId(
+  db: IModelDb,
+  elementId: string
+): string | undefined {
+  const sql = "SELECT Parent.Id FROM BisCore.Element WHERE ECInstanceId = ?";
+
+  const parentId = db.withPreparedStatement(sql, (stmt) => {
+    stmt.bindString(1, elementId);
+
+    if (stmt.step() === DbResult.BE_SQLITE_ROW) {
+      const val = stmt.getValue(0);
+
+      return val.isNull ? null : val.getString();
+    }
+
+    return null;
+  });
+
+  if (!parentId) {
+    return undefined;
+  }
+  return parentId;
+}
 export function getDeviceAllChildElements(
   db: IModelDb,
   elementId: string

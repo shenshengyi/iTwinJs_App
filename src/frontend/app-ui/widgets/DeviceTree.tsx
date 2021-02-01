@@ -284,6 +284,10 @@ class DeviceTreeManage {
       const vp = IModelApp.viewManager.selectedView!;
       changeColor(vp, ids);
       vp.zoomToElements(ids, { animateFrustumChange: true });
+      const parentId = await PropertiesRpcInterface.getClient().getParentElementId(prop!,elementId);
+      if (parentId){
+        imodel.selectionSet.add(parentId);
+      }
     }
   }
 }

@@ -86,6 +86,16 @@ export class PropertiesRpcImpl extends PropertiesRpcInterface {
     }
     return propertiesRpcService.getDeviceAllChildElements(db, _elementId);
   }
+  public async getParentElementId(
+    token: IModelRpcProps,
+    _elementId: string
+  ): Promise<string | undefined> {
+    const db = IModelDb.tryFindByKey(token.key);
+    if (!db) {
+      throw new Error("Failed to find db");
+    }
+    return propertiesRpcService.getParentElementId(db, _elementId);
+  }
 }
 
 // Implement RobotWorldReadRpcInterface

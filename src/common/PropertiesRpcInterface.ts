@@ -49,6 +49,12 @@ export class PropertiesRpcInterface extends RpcInterface {
   ): Promise<string[]> {
     return this.forward(arguments);
   }
+  public getParentElementId(
+    _token: IModelRpcProps,
+    _elementId: string
+  ): Promise<string|undefined> {
+    return this.forward(arguments);
+  }
 }
 
 // The RPC query interface that may be exposed by the RobotWorldEngine.
