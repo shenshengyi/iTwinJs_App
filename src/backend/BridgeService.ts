@@ -10,8 +10,8 @@ import {
 } from "@bentley/imodelhub-client";
 
 import { LocalhostHandler } from "./LocalhostHandler";
-import { createRequestContext } from "./webmain";
 import { AppSettings } from "./AppSettings";
+import { createRequestContext } from "./CustomRequestContext";
 
 
 export const bankClient = new IModelBankClient(

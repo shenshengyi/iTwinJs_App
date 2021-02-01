@@ -12,7 +12,8 @@ import {
 } from "@bentley/imodeljs-common";
 import SVTRpcInterface from "../common/SVTRpcInterface";
 import { IModelDb, IModelHost } from "@bentley/imodeljs-backend";
-import { createRequestContext } from "./webmain";
+import { createRequestContext } from "./CustomRequestContext";
+
 
 /** The backend implementation of SVTRpcImpl. */
 export default class SVTRpcImpl extends SVTRpcInterface {

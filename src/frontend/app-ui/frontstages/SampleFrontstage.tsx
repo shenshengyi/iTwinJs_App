@@ -59,7 +59,15 @@ export class SampleFrontstage extends FrontstageProvider {
     super();
 
     // Create the content layouts.
-    this._contentLayoutDef = new ContentLayoutDef({});
+    this._contentLayoutDef = new ContentLayoutDef({
+      verticalSplit: {
+        percentage: 0.5,
+        left: 0,
+        right: 1,
+        minSizeLeft: 100,
+        minSizeRight: 100,
+      },
+    });
 
     // Create the content group.
     this._contentGroup = new ContentGroup({
@@ -68,6 +76,13 @@ export class SampleFrontstage extends FrontstageProvider {
           classId: IModelViewportControl,
           applicationData: {
             viewState: this.viewStates[0],
+            iModelConnection: UiFramework.getIModelConnection(),
+          },
+        },
+        {
+          classId: IModelViewportControl,
+          applicationData: {
+            viewState: this.viewStates[1],
             iModelConnection: UiFramework.getIModelConnection(),
           },
         },
