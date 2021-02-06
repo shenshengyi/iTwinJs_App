@@ -5,6 +5,7 @@
 
 import { BackstageItem, BackstageItemUtilities } from "@bentley/ui-abstract";
 import { UiFramework } from "@bentley/ui-framework";
+import { NineZoneSampleApp } from "../../app/NineZoneSampleApp";
 import { AppUi } from "../AppUi";
 
 export class AppBackstageItemProvider {
@@ -63,24 +64,35 @@ export class AppBackstageItemProvider {
   }
 }
 
-async function SwitchIModel(frontstageId: string) {
+export async function SwitchIModel(frontstageId: string) {
+  let index: number = -1;
   switch (frontstageId) {
     case "金塔合并": {
-      await AppUi.CreateIModelConnection(0);
+      index = 0;
       break;
     }
     case "酒泉合并": {
-      await AppUi.CreateIModelConnection(1);
+      index = 1;
       break;
     }
     case "测试数据": {
-      await AppUi.CreateIModelConnection(2);
+      index = 2;
       break;
     }
   }
-  const imodel = UiFramework.getIModelConnection();
-  if (imodel) {
-    const views = await AppUi.getFirstTwoViewDefinitions(imodel);
-    AppUi.handleIModelViewsSelected(imodel, views);
+  //需要更新;
+  if (AppUi.IsNeedUpdate(index)) {
+    const Identifier = AppUi.QueryiModelIdentifeier(index);
+    if (Identifier) {
+      NineZoneSampleApp.store.dispatch({
+        type: "App:OPEN_IMODEL",
+        payload: {
+          projectName: Identifier.contextId,
+          imodelName: Identifier.imodelId,
+        },
+      });
+    }
+  } else {
+    //不需要更新;
   }
 }

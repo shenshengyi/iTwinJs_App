@@ -4,121 +4,216 @@
  *--------------------------------------------------------------------------------------------*/
 // make sure webfont brings in the icons and css files.
 import "@bentley/icons-generic-webfont/dist/bentley-icons-generic-webfont.css";
+import * as React from "react";
+import { Provider } from "react-redux";
+
 import {
   IModelApp,
   IModelConnection,
-  ViewState,
+  MessageBoxIconType,
+  MessageBoxType,
+  RemoteBriefcaseConnection,
 } from "@bentley/imodeljs-frontend";
-import { ConfigurableUiContent, UiFramework } from "@bentley/ui-framework";
-import * as React from "react";
-import { connect } from "react-redux";
+import { Dialog, LoadingSpinner, SpinnerSize } from "@bentley/ui-core";
+import {
+  ConfigurableUiContent,
+  FrontstageManager,
+  SyncUiEventDispatcher,
+  ThemeManager,
+  ToolbarDragInteractionContext,
+  UiFramework,
+} from "@bentley/ui-framework";
+import "./App.css";
+import { NineZoneSampleApp } from "../app/NineZoneSampleApp";
+import { SampleFrontstage } from "../app-ui/frontstages/SampleFrontstage";
 import { AppUi } from "../app-ui/AppUi";
 import { AppBackstageComposer } from "../app-ui/backstage/AppBackstageComposer";
-import { RootState } from "../app/AppState";
-import { NineZoneSampleApp } from "../app/NineZoneSampleApp";
-import "./App.css";
+import { SwitchState } from "../app/AppState";
+import { OpenMode } from "@bentley/bentleyjs-core";
+import { TestDeSerializationView } from "../app-ui/frontstages/Feature";
 
 /** React state of the App component */
 export interface AppState {
   user: {
-    isAuthorized: boolean;
     isLoading?: boolean;
   };
-  offlineIModel: boolean;
-  imodel?: IModelConnection;
-  viewStates?: ViewState[];
+  isOpening: boolean; // is opening a snapshot/iModel
 }
-interface AppProp {
-  imodel: IModelConnection;
-}
-/** A component the renders the whole application UI */
-export default class App extends React.Component<AppProp, AppState> {
+
+/** A component that renders the whole application UI */
+export default class AppComponent extends React.Component<{}, AppState> {
+  private _wantSnapshot: boolean;
+
   /** Creates an App instance */
-  constructor(props: AppProp) {
+  constructor(props: {}) {
     super(props);
+
     this.state = {
       user: {
-        isAuthorized: NineZoneSampleApp.oidcClient.isAuthorized,
         isLoading: false,
       },
-      offlineIModel: false,
-      imodel: props.imodel,
-      viewStates: undefined,
+      isOpening: false,
     };
+
+    this._wantSnapshot = true;
+
+    this.addSwitchStateSubscription();
+    const Identifier = AppUi.QueryiModelIdentifeier(0);
+    if (Identifier) {
+      this._contextId = Identifier.contextId;
+      this._imodelId = Identifier.imodelId;
+    }
   }
+
+  private addSwitchStateSubscription() {
+    this._subscription = NineZoneSampleApp.store.subscribe(async () => {
+      const switchState = NineZoneSampleApp.store.getState().switchIModelState
+        .switchState;
+      if (switchState === SwitchState.OpenIModel) {
+        const selectedIModel = NineZoneSampleApp.store.getState()
+          .switchIModelState.selectedIModel;
+        if (selectedIModel) {
+          this._contextId = selectedIModel.projectName;
+          this._imodelId = selectedIModel.imodelName;
+          await this._handleOpen();
+        }
+      }
+    });
+  }
+  private _contextId: string | undefined = undefined;
+  private _imodelId: string | undefined = undefined;
 
   public componentDidMount() {
-    this._onIModelSelected(this.props.imodel);
+    this._handleOpen();
   }
-
+  public componentWillUnmount() {
+    this._subscription.unsubscribe();
+  }
+  private _subscription: any;
   /** Handle iModel open event */
-  private _onIModelSelected = async (imodel: IModelConnection | undefined) => {
+  private _onIModelOpened = async (imodel: IModelConnection | undefined) => {
+    this.setState({ isOpening: false });
     if (!imodel) {
-      // reset the state when imodel is closed
-      this.setState({ imodel: undefined, viewStates: undefined });
       UiFramework.setIModelConnection(undefined);
       return;
     }
     try {
-      // attempt to get ViewState for the first two available view definitions
-      const viewStates = await AppUi.getFirstTwoViewDefinitions(imodel);
-      if (viewStates) {
-        this.setState({ imodel, viewStates }, () => {
-          AppUi.handleIModelViewsSelected(imodel, viewStates);
+      // attempt to get ViewState for the first available view definition
+      const viewState = await AppUi.getFirstTwoViewDefinitions(imodel);
+      if (viewState) {
+        // Set the iModelConnection in the Redux store
+        UiFramework.setIModelConnection(imodel);
+        UiFramework.setDefaultViewState(viewState[0]);
+
+        // We create a FrontStage that contains the view that we want.
+        const frontstageProvider = new SampleFrontstage(viewState);
+        // const frontstageProvider: FrontstageProvider = new MainFrontstage() as FrontstageProvider;
+        FrontstageManager.addFrontstageProvider(frontstageProvider);
+
+        // Tell the SyncUiEventDispatcher about the iModelConnection
+        SyncUiEventDispatcher.initializeConnectionEvents(imodel);
+
+        FrontstageManager.setActiveFrontstageDef(
+          frontstageProvider.frontstageDef
+        ).then(() => {
+          // Frontstage is ready
+          TestDeSerializationView();
         });
+      } else {
+        // If we failed to find a viewState, then we will just close the imodel and allow the user to select a different shapshot/iModel
+        await AppComponent.closeCurrentIModel();
+        this.doReselectOnError();
       }
     } catch (e) {
       // if failed, close the imodel and reset the state
-      await imodel.close();
-      this.setState({ imodel: undefined, viewStates: undefined });
+      await AppComponent.closeCurrentIModel();
       alert(e.message);
+      this.doReselectOnError();
     }
   };
-  private delayedInitialization() {
-    if (this.state.offlineIModel) {
-      // WORKAROUND: Clear authorization client if operating in offline mode
-      IModelApp.authorizationClient = undefined;
-    }
+
+  private doReselectOnError() {}
+
+  private _renderSpinner(msg: string) {
+    return (
+      <Dialog opened={true} modal={true} hideHeader={true} width={300}>
+        <span style={{ margin: "10px" }}>
+          <LoadingSpinner size={SpinnerSize.Large} message={msg} />
+        </span>
+      </Dialog>
+    );
   }
 
   /** The component's render method */
   public render() {
-    let ui: React.ReactNode;
-    let style: React.CSSProperties = {};
-
-    if (!this.state.imodel || !this.state.viewStates) {
-      // NOTE: We needed to delay some initialization until now so we know if we are opening a snapshot or an imodel.
-      this.delayedInitialization();
-      // if we don't have an imodel / view definition id - render a button that initiates imodel open
-      ui = <div>正在打开模型.....</div>;
-    } else {
-      // if we do have an imodel and view definition id - render imodel components
-      ui = <IModelComponents />;
-      style = { display: "none" };
-    }
-
+    let ui: React.ReactNode = <IModelComponents />;
     // render the app
     return (
-      <div className="App">
-        <div className="Header" style={style}>
-          <h2>{IModelApp.i18n.translate("NineZoneSample:welcome-message")}</h2>
+      <Provider store={NineZoneSampleApp.store}>
+        <div className="AppComponent">
+          {ui}
+          {this.state.isOpening && this._renderSpinner("正在打开iModel...")}
         </div>
-        {ui}
-      </div>
+      </Provider>
+    );
+  }
+
+  public static async closeCurrentIModel() {
+    const currentIModelConnection = UiFramework.getIModelConnection();
+    if (currentIModelConnection) {
+      SyncUiEventDispatcher.clearConnectionEvents(currentIModelConnection);
+      if (currentIModelConnection.isSnapshot)
+        await currentIModelConnection.close();
+      UiFramework.setIModelConnection(undefined);
+    }
+  }
+
+  private _handleOpen = async () => {
+    this.setState({ isOpening: true });
+
+    // close previous iModel/snapshot (if open)
+    await AppComponent.closeCurrentIModel();
+
+    if (this._wantSnapshot) return this._handleOpenSnapshot();
+  };
+
+  private _handleOpenSnapshot = async () => {
+    if (!this._contextId || !this._imodelId) {
+      return;
+    }
+    let imodel: IModelConnection | undefined;
+    try {
+      // attempt to open the imodel
+      imodel = await RemoteBriefcaseConnection.open(
+        this._contextId,
+        this._imodelId,
+        OpenMode.Readonly
+      );
+    } catch (e) {
+      this.setState({ isOpening: false });
+      await IModelApp.notifications.openMessageBox(
+        MessageBoxType.Ok,
+        "iModel打开失败",
+        MessageBoxIconType.Critical
+      );
+      this.doReselectOnError();
+      return;
+    }
+
+    await this._onIModelOpened(imodel);
+  };
+}
+/** Renders a viewport and a property grid */
+class IModelComponents extends React.PureComponent {
+  public render() {
+    return (
+      <Provider store={NineZoneSampleApp.store}>
+        <ThemeManager>
+          <ToolbarDragInteractionContext.Provider value={false}>
+            <ConfigurableUiContent appBackstage={<AppBackstageComposer />} />
+          </ToolbarDragInteractionContext.Provider>
+        </ThemeManager>
+      </Provider>
     );
   }
 }
-
-/** Renders a viewport, a tree, a property grid and a table */
-class IModelComponents extends React.PureComponent {
-  public render() {
-    return <ConfigurableUiContent appBackstage={<AppBackstageComposer />} />;
-  }
-}
-
-function mapStateToProps(state: RootState) {
-  const frameworkState = state.frameworkState;
-  if (!frameworkState) return undefined;
-  return { imodel: frameworkState.sessionState.iModelConnection! };
-}
-export const AppComposer = connect(mapStateToProps)(App); // eslint-disable-line @typescript-eslint/naming-convention

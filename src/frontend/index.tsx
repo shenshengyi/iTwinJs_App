@@ -5,34 +5,29 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import { Logger, LogLevel } from "@bentley/bentleyjs-core";
-
-import { AppLoggerCategory } from "../common/LoggerCategory";
 import { NineZoneSampleApp } from "./app/NineZoneSampleApp";
 import { AppUi } from "./app-ui/AppUi";
-import App, { AppComposer } from "./components/App";
 import "./index.scss";
-import { UiFramework } from "@bentley/ui-framework";
-import { Provider } from "react-redux";
-
-// Setup logging immediately to pick up any logging during NineZoneSampleApp.startup()
-Logger.initializeToConsole();
-Logger.setLevelDefault(LogLevel.Warning);
-Logger.setLevel(AppLoggerCategory.Frontend, LogLevel.Info);
+import AppComponent from "./components/App";
+import { SwitchIModel } from "./app-ui/backstage/AppBackstageItemProvider";
 
 (async () => {
-  // eslint-disable-line @typescript-eslint/no-floating-promises
-  // Start the app.
   await NineZoneSampleApp.startup();
-
-  // Initialize the AppUi & ConfigurableUiManager
+  await AppUi.InitIModelIdentifier();
   AppUi.initialize();
-  await AppUi.CreateIModelConnection(0);
-  // when initialization is complete, render
   ReactDOM.render(
-    <Provider store={NineZoneSampleApp.store}>
-      <AppComposer />
-    </Provider>,
+    <div>
+      <button onClick={jin}>酒泉</button>
+      <button onClick={ta}>金塔</button>
+      <AppComponent />
+    </div>,
     document.getElementById("root") as HTMLElement
   );
 })();
+
+async function jin() {
+  await SwitchIModel("酒泉合并");
+}
+async function ta() {
+  await SwitchIModel("金塔合并");
+}

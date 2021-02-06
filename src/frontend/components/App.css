@@ -69,7 +69,12 @@
   height: 100%;
   width: 30%;
 }
-
+.AppComponent {
+  display: flex;
+  flex-flow: column;
+  height: 100vh;
+  overflow: hidden;
+}
 .App .Content .right .top {
   position: absolute;
   top: 0;
