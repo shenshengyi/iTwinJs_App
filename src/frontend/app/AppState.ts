@@ -15,10 +15,7 @@ import {
 // Valid values for SwitchIModelState.switchState
 export enum SwitchState {
   None = 0,
-  SelectIModel = 1,
-  SelectSnapshot = 2,
-  OpenIModel = 3,
-  OpenSnapshot = 4,
+  OpenIModel = 1,
 }
 
 export interface SelectedIModel {
@@ -41,12 +38,8 @@ const initialState: SwitchIModelState = {
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const SwitchIModelActions = {
-  selectIModel: () => createAction("App:SELECT_IMODEL", {}),
-  selectSnapshot: () => createAction("App:SELECT_SNAPSHOT", {}),
   openIModel: (selectedIModel: SelectedIModel) =>
     createAction("App:OPEN_IMODEL", selectedIModel),
-  openSnapshot: (selectedSnapshot: string) =>
-    createAction("App:OPEN_SNAPSHOT", selectedSnapshot),
 };
 
 export type SwitchIModelActionsUnion = ActionsUnion<typeof SwitchIModelActions>;
@@ -57,21 +50,11 @@ function AppReducer(
   action: SwitchIModelActionsUnion
 ): DeepReadonly<SwitchIModelState> {
   switch (action.type) {
-    case "App:SELECT_IMODEL":
-      return { ...state, switchState: SwitchState.SelectIModel };
-    case "App:SELECT_SNAPSHOT":
-      return { ...state, switchState: SwitchState.SelectSnapshot };
     case "App:OPEN_IMODEL":
       return {
         ...state,
         switchState: SwitchState.OpenIModel,
         selectedIModel: action.payload,
-      };
-    case "App:OPEN_SNAPSHOT":
-      return {
-        ...state,
-        switchState: SwitchState.OpenSnapshot,
-        selectedSnapshot: action.payload,
       };
     default:
       return { ...state, switchState: SwitchState.None };
