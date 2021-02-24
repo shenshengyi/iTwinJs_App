@@ -16,6 +16,7 @@ import {
 import { Presentation } from "@bentley/presentation-frontend";
 import { AppNotificationManager, UiFramework } from "@bentley/ui-framework";
 import { getSupportedRpcs } from "../../common/rpcs";
+import { testEvent } from "../app-ui/frontstages/Feature";
 import { SelectElement } from "../app-ui/widgets/DeviceTree";
 import { WalkRoundTool } from "../feature/WalkRound";
 import { AppState, AppStore } from "./AppState";
@@ -90,7 +91,7 @@ export class NineZoneSampleApp {
         activeLocale: IModelApp.i18n.languageList()[0],
       })
     );
-
+    Presentation.selection.selectionChange.addListener(testEvent);
     // the app is ready when all initialization promises are fulfilled
     await Promise.all(initPromises);
     (IModelApp.accuSnap as ITwinWebAccuSnap).onDataButtonDown.addListener(

@@ -82,8 +82,12 @@ export function DeviceTree() {
     />
   );
 }
-function test(){
-  return (<div><Tree></Tree></div>);
+function test() {
+  return (
+    <div>
+      <Tree></Tree>
+    </div>
+  );
 }
 interface DeviceDataType {
   parent: string;
@@ -154,7 +158,6 @@ class DeviceTreeManage {
         if (this.IsExist(datas, newDevice)) {
           //添加设备;
           datas.push(newDevice);
-          console.log(newDevice.elementId);
         }
       }
     });
@@ -272,6 +275,7 @@ class DeviceTreeManage {
   }
 
   public static async HandleSelectedDevice(elementId: string) {
+
     const imodel = IModelApp.viewManager.selectedView?.view.iModel;
     if (imodel) {
       imodel.selectionSet.emptyAll();
@@ -284,18 +288,18 @@ class DeviceTreeManage {
       const vp = IModelApp.viewManager.selectedView!;
       changeColor(vp, ids);
       vp.zoomToElements(ids, { animateFrustumChange: true });
-      const parentId = await PropertiesRpcInterface.getClient().getParentElementId(prop!,elementId);
-      if (parentId){
+      const parentId = await PropertiesRpcInterface.getClient().getParentElementId(
+        prop!,
+        elementId
+      );
+      if (parentId) {
+        // alert(parentId);
         imodel.selectionSet.add(parentId);
       }
     }
   }
 }
 
-//测试代码;
-export async function TestObjectTree() {
-  // alert("测试对象树"); //9099922dd22d
-}
 export async function getTopAssemblyProperties(
   token: IModelRpcProps,
   instanceId: string

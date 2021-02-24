@@ -1,10 +1,25 @@
 import { Config } from "@bentley/bentleyjs-core";
 import {
   IModelApp,
+  SelectionSetEvent,
+  SelectionSetEventType,
   ViewClipClearTool,
   ViewClipDecorationProvider,
   ViewGlobeBirdTool,
 } from "@bentley/imodeljs-frontend";
+import {
+  ContentFlags,
+  ContentSpecificationTypes,
+  DefaultContentDisplayTypes,
+  DescriptorOverrides,
+  Ruleset,
+  RuleTypes,
+} from "@bentley/presentation-common";
+import {
+  ISelectionProvider,
+  Presentation,
+  SelectionChangeEventArgs,
+} from "@bentley/presentation-frontend";
 import {
   CommandItemDef,
   ItemList,
@@ -12,9 +27,26 @@ import {
   SavedViewProps,
   UiFramework,
 } from "@bentley/ui-framework";
+import { PropertiesRpcInterface } from "../../../common/PropertiesRpcInterface";
 import SVTRpcInterface from "../../../common/SVTRpcInterface";
 import { TeskWalkRound } from "../../feature/WalkRound";
+import { changeColor } from "../widgets/DeviceTree";
+export async function testEvent(
+  args: SelectionChangeEventArgs,
+  _provider: ISelectionProvider
+) {
+  console.log(args);
+  // console.log(provider);
+  const hiliteSet = await Presentation.selection.getHiliteSet(args.imodel);
+  console.log(hiliteSet);
+  const s = _provider.getSelection(args.imodel, 0);
+  console.log(s);
+  const vp = IModelApp.viewManager.selectedView!;
+  const ids = [...hiliteSet.elements!];
 
+  changeColor(vp, ids);
+  vp.zoomToElements(ids, { animateFrustumChange: true });
+}
 export class TestFeature {
   public static CreateCommand(
     id: string,
@@ -54,10 +86,54 @@ export class TestFeature {
       ViewGlobeBirdToolRun
     ),
     TestFeature.CreateCommand("TeskWalkRound", "漫游", TeskWalkRound),
-    // TestFeature.CreateCommand("Test", "Test", Test),
+    TestFeature.CreateCommand("Test", "Test", Test),
   ]);
 }
-
+const RULESET: Ruleset = {
+  id: `properties`,
+  rules: [
+    {
+      ruleType: RuleTypes.Content,
+      specifications: [
+        {
+          specType: ContentSpecificationTypes.SelectedNodeInstances,
+          acceptablePolymorphically: true,
+          acceptableClassNames: ["Element"],
+          acceptableSchemaName: "BisCore",
+        },
+      ],
+    },
+  ],
+};
+async function Test() {
+  // const id = "0x500000094dd";
+  const id = "0x94ed";
+  const imodel = UiFramework.getIModelConnection()!;
+  const s = await Presentation.selection.scopes.computeSelection(
+    imodel,
+    [id],
+    "element"
+  );
+  const overrides: DescriptorOverrides = {
+    displayType: DefaultContentDisplayTypes.PropertyPane,
+    hiddenFieldNames: [],
+    contentFlags: ContentFlags.MergeResults,
+  };
+  const c = await Presentation.presentation.getContent({
+    imodel,
+    rulesetOrId: RULESET,
+    descriptor: overrides,
+    keys: s,
+  });
+  console.log(c);
+  // const imodel = UiFramework.getIModelConnection()!;
+  // const e = await imodel.elements.getProps(id);
+  // if (e && e.length > 0) {
+  //   console.log(e[0]);
+  // } else {
+  //   alert("helo");
+  // }
+}
 async function ClearClip() {
   const vp = IModelApp.viewManager.selectedView;
   if (vp) {
@@ -65,9 +141,28 @@ async function ClearClip() {
     ViewClipDecorationProvider.create().toggleDecoration(vp);
   }
 }
-async function Test() {}
+
+export async function CustomSelectEvent(ev: SelectionSetEvent) {
+  if (ev.type === SelectionSetEventType.Replace) {
+    const imodel = UiFramework.getIModelConnection()!;
+    if (typeof ev.added === "string") {
+      const id = ev.added.toString();
+      const prop = imodel.getRpcProps();
+      const parentId = await PropertiesRpcInterface.getClient().getParentElementId(
+        prop!,
+        id
+      );
+      if (parentId) {
+        imodel.selectionSet.emptyAll();
+        imodel.selectionSet.add(parentId);
+      }
+    }
+  }
+}
 async function ViewGlobeBirdToolRun() {
   IModelApp.tools.run(ViewGlobeBirdTool.toolId);
+
+  const imodel = UiFramework.getIModelConnection()!;
 }
 async function ControlMapAndSky() {
   let vp = IModelApp.viewManager.selectedView!;

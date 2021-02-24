@@ -30,7 +30,7 @@ import { AppUi } from "../app-ui/AppUi";
 import { AppBackstageComposer } from "../app-ui/backstage/AppBackstageComposer";
 import { SwitchState } from "../app/AppState";
 import { OpenMode } from "@bentley/bentleyjs-core";
-import { TestDeSerializationView } from "../app-ui/frontstages/Feature";
+import { CustomSelectEvent, TestDeSerializationView } from "../app-ui/frontstages/Feature";
 
 /** React state of the App component */
 export interface AppState {
@@ -102,6 +102,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
       const viewState = await AppUi.getFirstTwoViewDefinitions(imodel);
       if (viewState) {
         // Set the iModelConnection in the Redux store
+       imodel.selectionSet.onChanged.addListener(CustomSelectEvent);
         UiFramework.setIModelConnection(imodel);
         UiFramework.setDefaultViewState(viewState[0]);
 

@@ -6,14 +6,17 @@ import { ViewState } from "@bentley/imodeljs-frontend";
 import { StatusBarSection } from "@bentley/ui-abstract";
 import {
   BasicNavigationWidget,
+  CommandItemDef,
   ConfigurableUiManager,
   ContentGroup,
   ContentLayoutDef,
+  ContentLayoutManager,
   ContentViewManager,
   CoreTools,
   CustomItemDef,
   Frontstage,
   FrontstageProvider,
+  GroupItemDef,
   IModelConnectedViewSelector,
   IModelViewportControl,
   ItemList,
@@ -50,25 +53,22 @@ import { TestFeature } from "./Feature";
  */
 export class SampleFrontstage extends FrontstageProvider {
   // Content layout for content views
-  private _contentLayoutDef: ContentLayoutDef;
-
+  // TWo content layouts for content views
+  private _contentLayoutDef1: ContentLayoutDef;
+  private _contentLayoutDef2: ContentLayoutDef;
   // Content group for both layouts
   private _contentGroup: ContentGroup;
 
   constructor(public viewStates: ViewState[]) {
     super();
-
     // Create the content layouts.
-    this._contentLayoutDef = new ContentLayoutDef({
-      verticalSplit: {
-        percentage: 0.5,
-        left: 0,
-        right: 1,
-        minSizeLeft: 100,
-        minSizeRight: 100,
-      },
+    this._contentLayoutDef1 = new ContentLayoutDef({
+      id: "SingleContent",
     });
 
+    this._contentLayoutDef2 = new ContentLayoutDef({
+      verticalSplit: { percentage: 0.5, left: 0, right: 1 },
+    });
     // Create the content group.
     this._contentGroup = new ContentGroup({
       contents: [
@@ -97,13 +97,21 @@ export class SampleFrontstage extends FrontstageProvider {
         id="SampleFrontstage"
         defaultTool={CoreTools.selectElementCommand}
         toolSettings={<Zone widgets={[<Widget isToolSettings={true} />]} />}
-        defaultLayout={this._contentLayoutDef}
+        defaultLayout={this._contentLayoutDef1}
         contentGroup={this._contentGroup}
         isInFooterMode={true}
         topLeft={
           <Zone
             widgets={[
-              <Widget isFreeform={true} element={<SampleToolWidget />} />,
+              <Widget
+                isFreeform={true}
+                element={
+                  <SampleToolWidget
+                    switchLayout1={this._switchLayout1}
+                    switchLayout2={this._switchLayout2}
+                  />
+                }
+              />,
             ]}
           />
         }
@@ -203,7 +211,33 @@ export class SampleFrontstage extends FrontstageProvider {
       />
     );
   }
+  /** Command that switches to layout 1 */
+  private get _switchLayout1(): CommandItemDef {
+    return new CommandItemDef({
+      iconSpec: "icon-placeholder",
+      labelKey: "一个视口",
+      execute: async () => {
+        await ContentLayoutManager.setActiveLayout(
+          this._contentLayoutDef1,
+          this._contentGroup
+        );
+      },
+    });
+  }
 
+  /** Command that switches to layout 2 */
+  private get _switchLayout2(): CommandItemDef {
+    return new CommandItemDef({
+      iconSpec: "icon-placeholder",
+      labelKey: "两个视窗",
+      execute: async () => {
+        await ContentLayoutManager.setActiveLayout(
+          this._contentLayoutDef2,
+          this._contentGroup
+        );
+      },
+    });
+  }
   /** Determine the WidgetState based on the Selection Set */
   private _determineWidgetStateForSelectionSet = (): WidgetState => {
     const activeContentControl = ContentViewManager.getActiveContentControl();
@@ -228,13 +262,26 @@ export class SampleFrontstage extends FrontstageProvider {
     });
   }
 }
-
+/* Properties for SampleToolWidget widget */
+interface SampleToolWidgetProps {
+  switchLayout1: CommandItemDef;
+  switchLayout2: CommandItemDef;
+}
 /**
  * Define a ToolWidget with Buttons to display in the TopLeft zone.
  */
-class SampleToolWidget extends React.Component {
+class SampleToolWidget extends React.Component<SampleToolWidgetProps> {
   public render(): React.ReactNode {
+    // const verticalItems = new ItemList([
+    //   new GroupItemDef({
+    //     labelKey: "NineZoneSample:buttons.switchLayouts",
+    //     iconSpec: "icon-placeholder",
+    //     items: [this.props.switchLayout1, this.props.switchLayout2],
+    //   }),
+    // ]);
     const horizontalItems = new ItemList([...TestFeature.ItemLists]);
+    horizontalItems.addItem(this.props.switchLayout1);
+    horizontalItems.addItem(this.props.switchLayout2);
     return <ReviewToolWidget suffixVerticalItems={horizontalItems} />;
   }
 }
