@@ -72,23 +72,24 @@ const getPropertyDescription = (): PropertyDescription => {
 class AutoExpandingPropertyDataProvider extends PresentationPropertyDataProvider {
   public async getData(): Promise<PropertyData> {
     const result = await super.getData();
-    // this.expandCategories(result.categories);
+    this.expandCategories(result.categories);
+    return result;
     // console.log(result);
 
-    if (result && result.categories && result.categories.length === 4) {
-      return result;
-    }
-    const sut = new PropertyRecord(value1, getPropertyDescription());
-    const data: PropertyData = { label: sut, categories: [], records: {} };
+    // if (result && result.categories && result.categories.length === 4) {
+    //   return result;
+    // }
+    // const sut = new PropertyRecord(value1, getPropertyDescription());
+    // const data: PropertyData = { label: sut, categories: [], records: {} };
 
-    return data;
+    // return data;
   }
 
-  // private expandCategories(categories: PropertyCategory[]) {
-  //   categories.forEach((category: PropertyCategory) => {
-  //     category.expand = true;
-  //     if (category.childCategories)
-  //       this.expandCategories(category.childCategories);
-  //   });
-  // }
+  private expandCategories(categories: PropertyCategory[]) {
+    categories.forEach((category: PropertyCategory) => {
+      category.expand = true;
+      if (category.childCategories)
+        this.expandCategories(category.childCategories);
+    });
+  }
 }

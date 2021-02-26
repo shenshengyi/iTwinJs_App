@@ -13,7 +13,11 @@ import {
   QuantityFormatter,
   ViewGlobeBirdTool,
 } from "@bentley/imodeljs-frontend";
-import { Presentation } from "@bentley/presentation-frontend";
+import {
+  ISelectionProvider,
+  Presentation,
+  SelectionChangeEventArgs,
+} from "@bentley/presentation-frontend";
 import { AppNotificationManager, UiFramework } from "@bentley/ui-framework";
 import { getSupportedRpcs } from "../../common/rpcs";
 import { testEvent } from "../app-ui/frontstages/Feature";
@@ -35,6 +39,7 @@ export enum UseBackend {
 
 // subclass of IModelApp needed to use imodeljs-frontend
 export class NineZoneSampleApp {
+  public static selectId: string = "null";
   private static _appState: AppState;
 
   public static get oidcClient(): FrontendAuthorizationClient {
@@ -97,6 +102,7 @@ export class NineZoneSampleApp {
     (IModelApp.accuSnap as ITwinWebAccuSnap).onDataButtonDown.addListener(
       SelectElement
     );
+   
   }
   private static async registerTool() {
     await IModelApp.i18n.registerNamespace("NineZoneSample").readFinished;
@@ -113,3 +119,5 @@ export class NineZoneSampleApp {
     BentleyCloudRpcManager.initializeClient(rpcParams, rpcInterfaces);
   }
 }
+
+

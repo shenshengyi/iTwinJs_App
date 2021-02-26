@@ -43,7 +43,12 @@ import * as React from "react";
 import { AppStatusBarWidget } from "../statusbars/AppStatusBar";
 import { PropertyGridWidget } from "../widgets/PropertyGridWidget";
 import { RenderModeInfoField } from "../widgets/TableWidget";
-import { DeviceWidget, TreeWidget } from "../widgets/TreeWidget";
+import {
+  DeviceWidget,
+  DeviceWidgetTest,
+  TreeWidget,
+  TreeWidget2021,
+} from "../widgets/TreeWidget";
 import { TestFeature } from "./Feature";
 
 /* eslint-disable react/jsx-key */
@@ -140,10 +145,21 @@ export class SampleFrontstage extends FrontstageProvider {
             allowsMerging={true}
             widgets={[
               <Widget
+                control={TreeWidget2021}
+                fillZone={true}
+                iconSpec="icon-tree"
+                labelKey="图层树"
+                tooltipKey="图层树"
+                applicationData={{
+                  iModelConnection: UiFramework.getIModelConnection(),
+                }}
+              />,
+              <Widget
                 control={TreeWidget}
                 fillZone={true}
                 iconSpec="icon-tree"
-                labelKey="NineZoneSample:components.tree"
+                labelKey="模型树"
+                tooltipKey="图层树"
                 applicationData={{
                   iModelConnection: UiFramework.getIModelConnection(),
                 }}
@@ -165,6 +181,18 @@ export class SampleFrontstage extends FrontstageProvider {
                 applicationData={{
                   iModelConnection: UiFramework.getIModelConnection(),
                 }}
+              />,
+              <Widget
+                control={DeviceWidgetTest}
+                fillZone={true}
+                iconSpec="icon-tree"
+                labelKey="测试表格"
+                preferredPanelSize="fit-content"
+                applicationData={{
+                  iModelConnection: UiFramework.getIModelConnection(),
+                }}
+                // syncEventIds={[SyncUiEventId.SelectionSetChanged]}
+                // stateFunc={this._determineWidgetStateForSelectionSet}
               />,
             ]}
           />

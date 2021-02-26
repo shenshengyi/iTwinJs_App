@@ -34,14 +34,14 @@ export async function TeskWalkRound() {
 }
 
 class MyRoaming implements Animator {
-  public static speed: number = 0.1;
+  public static speed: number = 0.02;
   private pathSite: Point3d[] = [];
   private totalTime: number = 0;
   private siteCount: number = 0;
   private currentSiteIndex = 0;
   private frustum: Frustum;
   private previousSite: Point3d | undefined = undefined;
-  private height: number = 2.5;
+  private height: number = 3.4;
   public constructor(
     public viewport: ScreenViewport,
     private view: ViewState3d,
@@ -200,7 +200,7 @@ class WalkRoundPathDecorator implements Decorator {
   public constructor(private poinsts: Point3d[]) {}
   public decorate(context: DecorateContext) {
     this.poinsts.forEach((e) => {
-      e.z = 1;
+      e.z = 2.5;
     });
     const overlayBuilder = context.createGraphicBuilder(GraphicType.Scene);
     const polylineColor = ColorDef.from(0, 255, 0, 128);

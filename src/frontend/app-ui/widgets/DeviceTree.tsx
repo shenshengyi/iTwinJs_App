@@ -4,6 +4,7 @@ import {
   FeatureOverrideType,
   HitDetail,
   IModelApp,
+  IModelConnection,
   ScreenViewport,
   SelectionSetEvent,
   SelectionSetEventType,
@@ -18,6 +19,8 @@ import {
 } from "../../../common/PropertiesRpcInterface";
 import { Tree } from "antd";
 import "antd/dist/antd.css";
+import { ParityRegion } from "@bentley/geometry-core";
+import { UiFramework } from "@bentley/ui-framework";
 export function changeColor(vp: ScreenViewport, ids: Id64String[]) {
   const emph = EmphasizeElements.getOrCreate(vp);
   emph.wantEmphasis = true;
@@ -51,14 +54,14 @@ export function DeviceTree() {
   const [treeData, setTreeData] = useState<any>(initTreeData);
   useEffect(() => {
     (async function () {
-      const data = await DeviceTreeManage.GetDeviceDataBackEnd();
+      const data = await DeviceTreeManage.GetDeviceData();
       setTreeData(data);
     })();
   }, []);
 
   const OnSelectDeviceTreeNode = (selectedKeys: React.Key[], info: any) => {
     if (selectedKeys.length > 0) {
-      const elementId = DeviceTreeManage.DeviceToElementMap.get(
+      const elementId = DeviceTreeManage.GetSelectedElementIdByNameOrGuid(
         info.node.title
       );
       if (elementId) {
@@ -82,13 +85,6 @@ export function DeviceTree() {
     />
   );
 }
-function test() {
-  return (
-    <div>
-      <Tree></Tree>
-    </div>
-  );
-}
 interface DeviceDataType {
   parent: string;
   child: string;
@@ -104,11 +100,23 @@ enum DeviceRelevantIdentifier {
 }
 //设备树管理类，其主要负责管理设备树的数据内容;
 class DeviceTreeManage {
-  public static DeviceToElementMap: Map<string, string> = new Map<
-    string,
-    string
-  >(); //设备GUID与Element之间的映射关系;
+  /*如果同一个imodel中的设备名字会重复，请换成GUID作为映射键。*/
+  public static DeviceToElementMap: Map<
+    string /*iModelID*/,
+    Map<string /*设备名字或GUID*/, string /*设备ElementID*/>
+  > = new Map<string, Map<string, string>>(); //设备GUID与Element之间的映射关系;
 
+  public static GetSelectedElementIdByNameOrGuid(name: string) {
+    let elementId: string | undefined = undefined;
+    const imodel = UiFramework.getIModelConnection()!;
+    if (this.DeviceToElementMap.has(imodel.iModelId!)) {
+      const mp = this.DeviceToElementMap.get(imodel.iModelId!)!;
+      if (mp.has(name)) {
+        elementId = mp.get(name);
+      }
+    }
+    return elementId;
+  }
   public static treeNodeCount: number = 0; //其用于DeviceTree树的节点的Key值,保持唯一即可。
 
   private static GenerateCustomDeviceData(dataList: AspectsData[]) {
@@ -163,14 +171,29 @@ class DeviceTreeManage {
     });
 
     //创建设备与Element之间的映射关系;
+
+    const mp: Map<string, string> = new Map<string, string>();
     datas.forEach((data) => {
       if (data.tag === DeviceRelevantIdentifier.device) {
-        this.DeviceToElementMap.set(data.child, data.elementId!);
+        mp.set(data.child, data.elementId!);
       }
     });
+    const imodel = UiFramework.getIModelConnection()!;
+    this.DeviceToElementMap.set(imodel.iModelId!, mp);
     return datas;
   }
-
+  public static DeviceDataMap: Map<string, any> = new Map<string, any>();
+  public static async GetDeviceData() {
+    const imodel = UiFramework.getIModelConnection()!;
+    if (this.DeviceDataMap.has(imodel.iModelId!)) {
+      console.log("here");
+      return this.DeviceDataMap.get(imodel.iModelId!);
+    }
+    const data = await this.GetDeviceDataBackEnd();
+    console.log("从后台获取数据");
+    this.DeviceDataMap.set(imodel.iModelId!, data);
+    return data;
+  }
   public static async GetDeviceDataBackEnd() {
     const imodel = IModelApp.viewManager.selectedView?.view.iModel;
     const prop = imodel?.getRpcProps();
@@ -190,6 +213,7 @@ class DeviceTreeManage {
     const InDoorBuild = this.GenerateTreeNodeData(datas, true);
     //生成室内树节点数据;
     const OutDoorBuild = this.GenerateTreeNodeData(datas, false);
+
     const DeviceTreeData = [
       {
         title: "室内",
@@ -275,7 +299,6 @@ class DeviceTreeManage {
   }
 
   public static async HandleSelectedDevice(elementId: string) {
-
     const imodel = IModelApp.viewManager.selectedView?.view.iModel;
     if (imodel) {
       imodel.selectionSet.emptyAll();
@@ -293,7 +316,6 @@ class DeviceTreeManage {
         elementId
       );
       if (parentId) {
-        // alert(parentId);
         imodel.selectionSet.add(parentId);
       }
     }
@@ -312,12 +334,20 @@ export async function getTopAssemblyProperties(
   } catch (error) {}
 }
 
-export async function SelectElement(_ev: BeButtonEvent, currHit?: HitDetail) {
+export async function SelectElement(_ev: BeButtonEvent, _currHit?: HitDetail) {
   const vp = IModelApp.viewManager.selectedView!;
   const imodel = IModelApp.viewManager.selectedView?.view.iModel;
-  if (imodel) {
+  if (imodel && _currHit) {
     imodel.selectionSet.emptyAll();
     imodel.hilited.clear();
+    const prop = imodel.getRpcProps();
+    const parentId = await PropertiesRpcInterface.getClient().getParentElementId(
+      prop!,
+      _currHit.sourceId
+    );
+    if (parentId) {
+      imodel.selectionSet.add(parentId);
+    }
   }
   const emph = EmphasizeElements.getOrCreate(vp);
   emph.wantEmphasis = true;
@@ -327,15 +357,19 @@ export async function SelectElement(_ev: BeButtonEvent, currHit?: HitDetail) {
       emph.clearOverriddenElements(vp, key);
     });
   }
-  if (currHit && currHit.isElementHit && imodel) {
+  if (_currHit && _currHit.isElementHit && imodel) {
     const prop = imodel.getRpcProps();
     const ids = await PropertiesRpcInterface.getClient().getDeviceAllChildElements(
       prop!,
-      currHit.sourceId
+      _currHit.sourceId
     );
     if (ids.length !== 0) {
       changeColor(vp, ids);
     }
+    const parentId = await PropertiesRpcInterface.getClient().getParentElementId(
+      prop!,
+      _currHit.sourceId
+    );
   }
 }
 export function ClearSelectedDevice(ev: SelectionSetEvent) {
