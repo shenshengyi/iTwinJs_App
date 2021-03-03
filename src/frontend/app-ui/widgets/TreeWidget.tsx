@@ -19,7 +19,7 @@ import { AutoComplete } from "antd";
 import * as React from "react";
 import SimpleTreeComponent from "../../components/Tree";
 import { DeviceTree } from "./DeviceTree";
-
+import { TestTree2021 } from "./TestTree";
 /** A widget control for displaying the Tree React component */
 export class TreeWidget extends WidgetControl {
   constructor(info: ConfigurableCreateInfo, options: any) {
@@ -53,6 +53,20 @@ export class DeviceWidget extends WidgetControl {
       this.reactNode = (
         <div style={{ overflow: "auto" }}>
           <DeviceTree />
+        </div>
+      );
+    }
+  }
+}
+/** A widget control for displaying the Tree React component */
+export class TestWidget20212021 extends WidgetControl {
+  constructor(info: ConfigurableCreateInfo, options: any) {
+    super(info, options);
+
+    if (options.iModelConnection) {
+      this.reactNode = (
+        <div style={{ overflow: "auto" }}>
+          <TestTree2021 />
         </div>
       );
     }

@@ -96,6 +96,17 @@ export class PropertiesRpcImpl extends PropertiesRpcInterface {
     }
     return propertiesRpcService.getParentElementId(db, _elementId);
   }
+  //获取element的所有附加属性，主要针对itemtype
+  public async getElementAspects(
+    token: IModelRpcProps,
+    elementId: string
+  ): Promise<any> {
+    const db = IModelDb.tryFindByKey(token.key);
+    if (!db) {
+      throw new Error("Failed to find db");
+    }
+    return propertiesRpcService.getElementAspects(db, elementId);
+  }
 }
 
 // Implement RobotWorldReadRpcInterface

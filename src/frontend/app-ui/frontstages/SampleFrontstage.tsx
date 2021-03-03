@@ -22,6 +22,7 @@ import {
   ItemList,
   ReviewToolWidget,
   SelectionInfoField,
+  SessionStateActionId,
   SnapModeField,
   StagePanel,
   StatusBarComposer,
@@ -33,10 +34,12 @@ import {
   ToolbarHelper,
   UiFramework,
   ViewAttributesStatusField,
+  ViewSelector,
   Widget,
   WidgetState,
   withStatusFieldProps,
   Zone,
+  ZoneLocation,
   ZoneState,
 } from "@bentley/ui-framework";
 import * as React from "react";
@@ -48,9 +51,16 @@ import {
   DeviceWidgetTest,
   TreeWidget,
   TreeWidget2021,
+  TestWidget20212021,
 } from "../widgets/TreeWidget";
+import { MyViewSelector } from "../widgets/ViewSelector";
 import { TestFeature } from "./Feature";
-
+export enum StagePanelState {
+  Off,
+  Minimized,
+  Open,
+  Popup,
+}
 /* eslint-disable react/jsx-key */
 
 /**
@@ -80,21 +90,25 @@ export class SampleFrontstage extends FrontstageProvider {
         {
           classId: IModelViewportControl,
           applicationData: {
-            viewState: this.viewStates[0],
-            iModelConnection: UiFramework.getIModelConnection(),
+            viewState: UiFramework.getDefaultViewState,
+            iModelConnection: UiFramework.getIModelConnection,
+            disableDefaultViewOverlay: true,
           },
         },
         {
           classId: IModelViewportControl,
           applicationData: {
-            viewState: this.viewStates[1],
-            iModelConnection: UiFramework.getIModelConnection(),
+            viewState: UiFramework.getDefaultViewState,
+            iModelConnection: UiFramework.getIModelConnection,
+            disableDefaultViewOverlay: true,
           },
         },
       ],
     });
   }
-
+  private _rightPanel = {
+    allowedZones: [2, 6, 9],
+  };
   /** Define the Frontstage properties */
   public get frontstage() {
     return (
@@ -116,6 +130,65 @@ export class SampleFrontstage extends FrontstageProvider {
                     switchLayout2={this._switchLayout2}
                   />
                 }
+              />,
+            ]}
+          />
+        }
+        // rightPanel={
+        //   <StagePanel
+        //     defaultState={StagePanelState.Open}
+        //     resizable={true}
+        //     applicationData={{ key: "value" }}
+        //     widgets={[<Widget element={<h3>Right panel</h3>} />]}
+        //   />
+        // }
+        rightPanel={
+          <StagePanel
+            resizable={false}
+            pinned={false}
+            allowedZones={[ZoneLocation.TopLeft]}
+            widgets={[
+              <Widget
+                control={TestWidget20212021}
+                fillZone={true}
+                iconSpec="icon-tree"
+                labelKey="NineZoneSample:components.tree"
+                preferredPanelSize="fit-content"
+                applicationData={{
+                  iModelConnection: UiFramework.getIModelConnection(),
+                }}
+              />,
+            ]}
+          />
+        }
+        leftPanel={
+          <StagePanel
+            widgets={[
+              <Widget
+                control={TestWidget20212021}
+                fillZone={true}
+                iconSpec="icon-tree"
+                labelKey="NineZoneSample:components.tree"
+                preferredPanelSize="fit-content"
+                applicationData={{
+                  iModelConnection: UiFramework.getIModelConnection(),
+                }}
+              />,
+            ]}
+          />
+        }
+        bottomPanel={
+          <StagePanel
+            widgets={[
+              <Widget
+                control={TestWidget20212021}
+                fillZone={true}
+                iconSpec="icon-tree"
+                labelKey="NineZoneSample:components.tree"
+                preferredPanelSize="fit-content"
+                applicationData={{
+                  iModelConnection: UiFramework.getIModelConnection(),
+                }}
               />,
             ]}
           />
@@ -225,7 +298,6 @@ export class SampleFrontstage extends FrontstageProvider {
             ]}
           />
         }
-        rightPanel={<StagePanel allowedZones={[6, 9]} />}
         statusBar={
           <Zone
             widgets={[
@@ -283,10 +355,12 @@ export class SampleFrontstage extends FrontstageProvider {
     return new CustomItemDef({
       customId: "sampleApp:viewSelector",
       reactElement: (
-        <IModelConnectedViewSelector
-          listenForShowUpdates={false} // Demo for showing only the same type of view in ViewSelector - See IModelViewport.tsx, onActivated
+        <MyViewSelector
+          listenForShowUpdates={true}
+          imodel={UiFramework.getIModelConnection()!}
         />
       ),
+      // stateSyncIds: [SessionStateActionId.SetIModelConnection],
     });
   }
 }

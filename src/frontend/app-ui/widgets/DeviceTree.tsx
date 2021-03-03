@@ -317,6 +317,11 @@ class DeviceTreeManage {
       );
       if (parentId) {
         imodel.selectionSet.add(parentId);
+        const result = await PropertiesRpcInterface.getClient().getElementAspects(
+          prop!,
+          parentId
+        );
+        console.log(result);
       }
     }
   }

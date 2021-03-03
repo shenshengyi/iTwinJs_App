@@ -52,7 +52,14 @@ export class PropertiesRpcInterface extends RpcInterface {
   public getParentElementId(
     _token: IModelRpcProps,
     _elementId: string
-  ): Promise<string|undefined> {
+  ): Promise<string | undefined> {
+    return this.forward(arguments);
+  }
+  //获取element的所有附加属性，主要针对itemtype
+  public getElementAspects(
+    _token: IModelRpcProps,
+    _elementId: string
+  ): Promise<any> {
     return this.forward(arguments);
   }
 }

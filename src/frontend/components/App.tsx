@@ -18,7 +18,9 @@ import { Dialog, LoadingSpinner, SpinnerSize } from "@bentley/ui-core";
 import {
   ConfigurableUiContent,
   FrontstageManager,
+  SessionStateActionId,
   SyncUiEventDispatcher,
+  SyncUiEventId,
   ThemeManager,
   ToolbarDragInteractionContext,
   UiFramework,
@@ -30,7 +32,10 @@ import { AppUi } from "../app-ui/AppUi";
 import { AppBackstageComposer } from "../app-ui/backstage/AppBackstageComposer";
 import { SwitchState } from "../app/AppState";
 import { OpenMode } from "@bentley/bentleyjs-core";
-import { CustomSelectEvent, TestDeSerializationView } from "../app-ui/frontstages/Feature";
+import {
+  CustomSelectEvent,
+  TestDeSerializationView,
+} from "../app-ui/frontstages/Feature";
 
 /** React state of the App component */
 export interface AppState {
@@ -58,7 +63,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
     this._wantSnapshot = true;
 
     this.addSwitchStateSubscription();
-    const Identifier = AppUi.QueryiModelIdentifeier(0);
+    const Identifier = AppUi.QueryiModelIdentifeier(1);
     if (Identifier) {
       this._contextId = Identifier.contextId;
       this._imodelId = Identifier.imodelId;
@@ -94,7 +99,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
   private _onIModelOpened = async (imodel: IModelConnection | undefined) => {
     this.setState({ isOpening: false });
     if (!imodel) {
-      UiFramework.setIModelConnection(undefined);
+      UiFramework.setIModelConnection(undefined,true);
       return;
     }
     try {
@@ -102,11 +107,14 @@ export default class AppComponent extends React.Component<{}, AppState> {
       const viewState = await AppUi.getFirstTwoViewDefinitions(imodel);
       if (viewState) {
         // Set the iModelConnection in the Redux store
-       imodel.selectionSet.onChanged.addListener(CustomSelectEvent);
-        UiFramework.setIModelConnection(imodel);
+        imodel.selectionSet.onChanged.addListener(CustomSelectEvent);
+        UiFramework.setIModelConnection(imodel,true);
         UiFramework.setDefaultViewState(viewState[0]);
 
         // We create a FrontStage that contains the view that we want.
+        SyncUiEventDispatcher.dispatchImmediateSyncUiEvent(
+          SessionStateActionId.SetIModelConnection
+        );
         const frontstageProvider = new SampleFrontstage(viewState);
         // const frontstageProvider: FrontstageProvider = new MainFrontstage() as FrontstageProvider;
         FrontstageManager.addFrontstageProvider(frontstageProvider);
@@ -165,7 +173,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
       SyncUiEventDispatcher.clearConnectionEvents(currentIModelConnection);
       if (currentIModelConnection.isSnapshot)
         await currentIModelConnection.close();
-      UiFramework.setIModelConnection(undefined);
+      UiFramework.setIModelConnection(undefined,true);
     }
   }
 

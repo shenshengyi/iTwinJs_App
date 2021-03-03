@@ -6,6 +6,7 @@ import {
 } from "@bentley/bentleyjs-core";
 
 import { AspectsData } from "../common/PropertiesRpcInterface";
+import { TestPresentationHandle } from "./PresentationQuery";
 
 export function replaceChineseChars(key: string) {
   return key
@@ -126,6 +127,16 @@ export function getElementChildIds(db: IModelDb, elementId: string) {
   }
   return ids;
 }
+
+/////////////////////////////////////////////
+//获取element的所有附加属性，主要针对itemtype
+export function getElementAspects(db: IModelDb, elementId: string) {
+  return (async () => {
+    const result = await TestPresentationHandle(db, elementId);
+    return result;
+  })();
+}
+////////////////////////////////////////////////
 export function getParentElementId(
   db: IModelDb,
   elementId: string

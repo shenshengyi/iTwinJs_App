@@ -1,4 +1,4 @@
-import { Config } from "@bentley/bentleyjs-core";
+import { Config, Guid } from "@bentley/bentleyjs-core";
 import {
   EmphasizeElements,
   HitDetail,
@@ -15,6 +15,7 @@ import {
   DefaultContentDisplayTypes,
   DescriptorOverrides,
   KeySet,
+  PresentationRpcInterface,
   Ruleset,
   RuleTypes,
 } from "@bentley/presentation-common";
@@ -34,15 +35,15 @@ import { PropertiesRpcInterface } from "../../../common/PropertiesRpcInterface";
 import SVTRpcInterface from "../../../common/SVTRpcInterface";
 import { TeskWalkRound } from "../../feature/WalkRound";
 import { changeColor } from "../widgets/DeviceTree";
+import { getContent } from "./PresentationQuery";
 export async function testEvent(
   _args: SelectionChangeEventArgs,
   _provider: ISelectionProvider
 ) {
-// Presentation.selection.selectionChange.addListener
+  // Presentation.selection.selectionChange.addListener
   // if (_args.source !== "Tool" || _args.imodel === undefined) {
   //   return;
   // }
-
   // const hiliteSet = await Presentation.selection.getHiliteSet(_args.imodel);
   // if (hiliteSet && hiliteSet.elements && hiliteSet.elements.length > 0) {
   //   const imodel = _args.imodel;
@@ -74,10 +75,8 @@ export async function testEvent(
   // console.log(s);
   // const vp = IModelApp.viewManager.selectedView!;
   // const ids = [...hiliteSet.elements!];
-
   // changeColor(vp, ids);
   // vp.zoomToElements(ids, { animateFrustumChange: true });
-
   // const vp = IModelApp.viewManager.selectedView!;
   // const imodel = _args.imodel;
   // if (!imodel) {
@@ -91,7 +90,6 @@ export async function testEvent(
   //     emph.clearOverriddenElements(vp, key);
   //   });
   // }
-
   // const hiltes = await Presentation.selection.getHiliteSet(imodel);
   // if (hiltes && hiltes.elements && hiltes.elements.length > 0) {
   //   const prop = imodel.getRpcProps();
@@ -190,14 +188,31 @@ const RULESET: Ruleset = {
   ],
 };
 async function Test() {
-  // const id = "0x500000094dd";
-  // const id = "0x94ed";
-  // const imodel = UiFramework.getIModelConnection()!;
-  // const s = await Presentation.selection.scopes.computeSelection(
-  //   imodel,
-  //   [id],
-  //   "element"
-  // );
+  const imodel = UiFramework.getIModelConnection()!;
+  const prop = await imodel.getRpcProps();
+  const id = "0x5000000926b";
+  const result = await PropertiesRpcInterface.getClient().getElementAspects(
+    prop!,
+    id
+  );
+  console.log(result);
+  // const ruleset: Ruleset = {
+  //   id: Guid.createValue(),
+  //   rules: [
+  //     {
+  //       ruleType: RuleTypes.Content,
+  //       specifications: [
+  //         {
+  //           specType:
+  //             ContentSpecificationTypes.ContentInstancesOfSpecificClasses,
+  //           classes: { schemaName: "BisCore", classNames: ["Element"] },
+  //           handleInstancesPolymorphically: true,
+  //           // instanceFilter: `this.ECInstanceId = 1`,
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // };
   // const overrides: DescriptorOverrides = {
   //   displayType: DefaultContentDisplayTypes.PropertyPane,
   //   hiddenFieldNames: [],
@@ -206,20 +221,10 @@ async function Test() {
   // const c = await Presentation.presentation.getContent({
   //   imodel,
   //   rulesetOrId: RULESET,
-  //   descriptor: overrides,
-  //   keys: s,
+  //   descriptor: {},
+  //   keys: new KeySet(),
   // });
   // console.log(c);
-  // const imodel = UiFramework.getIModelConnection()!;
-  // const e = await imodel.elements.getProps(id);
-  // if (e && e.length > 0) {
-  //   console.log(e[0]);
-  // } else {
-  //   alert("helo");
-  // }
-  const id = "5497558176440";
-  const imodel = UiFramework.getIModelConnection()!;
-  imodel.selectionSet.add(id);
 }
 async function ClearClip() {
   const vp = IModelApp.viewManager.selectedView;
