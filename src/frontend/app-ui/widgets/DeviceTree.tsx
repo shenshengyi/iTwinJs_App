@@ -19,7 +19,7 @@ import {
 } from "../../../common/PropertiesRpcInterface";
 import { Tree } from "antd";
 import "antd/dist/antd.css";
-import { ParityRegion } from "@bentley/geometry-core";
+import { IModelJson, ParityRegion } from "@bentley/geometry-core";
 import { UiFramework } from "@bentley/ui-framework";
 export function changeColor(vp: ScreenViewport, ids: Id64String[]) {
   const emph = EmphasizeElements.getOrCreate(vp);
@@ -321,7 +321,13 @@ class DeviceTreeManage {
           prop!,
           parentId
         );
-        console.log(result);
+        // console.log(result);
+        const r = JSON.stringify(result);
+        const js = JSON.parse(r);
+        console.log(js);
+        if (js && js["附加属性"] && js["附加属性"]["cabinetName"]) {
+          console.log(js["附加属性"]["cabinetName"]);
+        }
       }
     }
   }
@@ -371,10 +377,6 @@ export async function SelectElement(_ev: BeButtonEvent, _currHit?: HitDetail) {
     if (ids.length !== 0) {
       changeColor(vp, ids);
     }
-    const parentId = await PropertiesRpcInterface.getClient().getParentElementId(
-      prop!,
-      _currHit.sourceId
-    );
   }
 }
 export function ClearSelectedDevice(ev: SelectionSetEvent) {

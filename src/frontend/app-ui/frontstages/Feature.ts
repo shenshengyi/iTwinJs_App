@@ -1,4 +1,5 @@
 import { Config, Guid } from "@bentley/bentleyjs-core";
+import { RenderMode } from "@bentley/imodeljs-common";
 import {
   EmphasizeElements,
   HitDetail,
@@ -169,7 +170,21 @@ export class TestFeature {
     ),
     TestFeature.CreateCommand("TeskWalkRound", "漫游", TeskWalkRound),
     TestFeature.CreateCommand("Test", "Test", Test),
+    TestFeature.CreateCommand(
+      "TestCancleHide",
+      "TestCancleHide",
+      TestCancleHide
+    ),
+    TestFeature.CreateCommand("SetSmood", "SetSmood", SetSmood),
   ]);
+}
+async function SetSmood() {
+  const vp = IModelApp.viewManager.selectedView!;
+  vp.viewFlags.renderMode = RenderMode.SmoothShade;
+}
+async function TestCancleHide() {
+  const vp = IModelApp.viewManager.selectedView!;
+  vp.clearNeverDrawn();
 }
 const RULESET: Ruleset = {
   id: `properties`,
@@ -187,15 +202,45 @@ const RULESET: Ruleset = {
     },
   ],
 };
+async function Hide(
+  _args: SelectionChangeEventArgs,
+  _provider: ISelectionProvider
+) {
+  if (_args.source !== "Tool" || _args.imodel === undefined) {
+    return;
+  }
+  const hils = await Presentation.selection.getHiliteSet(_args.imodel);
+  if (hils && hils.elements) {
+    console.log(hils.elements);
+    const vp = IModelApp.viewManager.selectedView!;
+    ///////////////////////////////////////
+    const emp = EmphasizeElements.getOrCreate(vp);
+    emp.hideElements(hils.elements, vp, false);
+    ///////////////////////////////////////
+    // const s = new Set<string>();
+    // if (vp.neverDrawn) {
+    //   vp.neverDrawn.forEach((id) => {
+    //     s.add(id);
+    //   });
+    // }
+
+    // hils.elements.forEach((id) => {
+    //   s.add(id);
+    // });
+    // vp.setNeverDrawn(s);
+  }
+}
 async function Test() {
-  const imodel = UiFramework.getIModelConnection()!;
-  const prop = await imodel.getRpcProps();
-  const id = "0x5000000926b";
-  const result = await PropertiesRpcInterface.getClient().getElementAspects(
-    prop!,
-    id
-  );
-  console.log(result);
+  // const imodel = UiFramework.getIModelConnection()!;
+  // const prop = await imodel.getRpcProps();
+  // const id = "0x5000000926b";
+  // const result = await PropertiesRpcInterface.getClient().getElementAspects(
+  //   prop!,
+  //   id
+  // );
+  // console.log(result);
+
+  Presentation.selection.selectionChange.addListener(Hide);
   // const ruleset: Ruleset = {
   //   id: Guid.createValue(),
   //   rules: [

@@ -102,7 +102,6 @@ export class NineZoneSampleApp {
     (IModelApp.accuSnap as ITwinWebAccuSnap).onDataButtonDown.addListener(
       SelectElement
     );
-   
   }
   private static async registerTool() {
     await IModelApp.i18n.registerNamespace("NineZoneSample").readFinished;
@@ -119,5 +118,3 @@ export class NineZoneSampleApp {
     BentleyCloudRpcManager.initializeClient(rpcParams, rpcInterfaces);
   }
 }
-
-

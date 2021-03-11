@@ -63,7 +63,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
     this._wantSnapshot = true;
 
     this.addSwitchStateSubscription();
-    const Identifier = AppUi.QueryiModelIdentifeier(1);
+    const Identifier = AppUi.QueryiModelIdentifeier(2);
     if (Identifier) {
       this._contextId = Identifier.contextId;
       this._imodelId = Identifier.imodelId;
