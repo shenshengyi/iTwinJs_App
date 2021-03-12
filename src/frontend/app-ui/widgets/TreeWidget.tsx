@@ -2,7 +2,11 @@
  * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
  * See LICENSE.md in the project root for license terms and full copyright notice.
  *--------------------------------------------------------------------------------------------*/
-import { IModelApp, IModelConnection } from "@bentley/imodeljs-frontend";
+import {
+  IModelApp,
+  IModelConnection,
+  ScreenViewport,
+} from "@bentley/imodeljs-frontend";
 import {
   ISelectionProvider,
   Presentation,
@@ -17,6 +21,8 @@ import {
 } from "@bentley/ui-framework";
 import { AutoComplete } from "antd";
 import * as React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 import SimpleTreeComponent from "../../components/Tree";
 import { DeviceTree } from "./DeviceTree";
 import { TestTree2021 } from "./TestTree";
@@ -37,12 +43,33 @@ export class TreeWidget2021 extends WidgetControl {
   constructor(info: ConfigurableCreateInfo, options: any) {
     super(info, options);
     const vp = IModelApp.viewManager.selectedView;
-    if (options.iModelConnection && vp) {
-      this.reactNode = (
-        <CategoryTree iModel={options.iModelConnection} activeView={vp} />
-      );
+    if (options.iModelConnection) {
+      // this.reactNode = (
+      //   <ModelsTree iModel={options.iModelConnection} activeView={vp} />
+      // );
+      this.reactNode = <MyCategoryTree imodel={options.iModelConnection} />;
     }
   }
+}
+interface MyCategoryTreeProp {
+  imodel: IModelConnection;
+}
+function MyCategoryTree(prop: MyCategoryTreeProp) {
+  const [vp, setVP] = useState(
+    IModelApp.viewManager.selectedView
+  );
+  useEffect(() => {
+    (async function () {
+      IModelApp.viewManager.onViewOpen.addListener(
+        async (vp: ScreenViewport) => {
+          if (vp) {
+            setVP(vp);
+          }
+        }
+      );
+    })();
+  }, []);
+  return <ModelsTree iModel={prop.imodel} activeView={vp} />;
 }
 /** A widget control for displaying the Tree React component */
 export class DeviceWidget extends WidgetControl {
@@ -52,7 +79,7 @@ export class DeviceWidget extends WidgetControl {
     if (options.iModelConnection) {
       this.reactNode = (
         <div style={{ overflow: "auto" }}>
-          <DeviceTree />
+          <DeviceTree imodel={options.iModelConnection} />
         </div>
       );
     }

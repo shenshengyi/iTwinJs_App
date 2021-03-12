@@ -19,7 +19,6 @@ import {
 } from "../../../common/PropertiesRpcInterface";
 import { Tree } from "antd";
 import "antd/dist/antd.css";
-import { IModelJson, ParityRegion } from "@bentley/geometry-core";
 import { UiFramework } from "@bentley/ui-framework";
 export function changeColor(vp: ScreenViewport, ids: Id64String[]) {
   const emph = EmphasizeElements.getOrCreate(vp);
@@ -48,16 +47,19 @@ const initTreeData = [
     isLeaf: true,
   },
 ];
-
+export interface DeviceTreeProp {
+  imodel: IModelConnection;
+}
 //设备树组件;
-export function DeviceTree() {
+export function DeviceTree(prop: DeviceTreeProp) {
   const [treeData, setTreeData] = useState<any>(initTreeData);
+  const imodel = prop.imodel;
   useEffect(() => {
     (async function () {
       const data = await DeviceTreeManage.GetDeviceData();
       setTreeData(data);
     })();
-  }, []);
+  }, [imodel]);
 
   const OnSelectDeviceTreeNode = (selectedKeys: React.Key[], info: any) => {
     if (selectedKeys.length > 0) {
@@ -195,7 +197,7 @@ class DeviceTreeManage {
     return data;
   }
   public static async GetDeviceDataBackEnd() {
-    const imodel = IModelApp.viewManager.selectedView?.view.iModel;
+    const imodel = UiFramework.getIModelConnection()!;
     const prop = imodel?.getRpcProps();
 
     const dataList: AspectsData[] = await PropertiesRpcInterface.getClient().getDeviceAspects(

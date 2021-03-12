@@ -3,7 +3,7 @@
  * See LICENSE.md in the project root for license terms and full copyright notice.
  *--------------------------------------------------------------------------------------------*/
 import { ViewState } from "@bentley/imodeljs-frontend";
-import { StatusBarSection } from "@bentley/ui-abstract";
+import { StageUsage, StatusBarSection } from "@bentley/ui-abstract";
 import {
   BasicNavigationWidget,
   CommandItemDef,
@@ -114,6 +114,8 @@ export class SampleFrontstage extends FrontstageProvider {
     return (
       <Frontstage
         id="SampleFrontstage"
+        version={1.1}
+        usage={StageUsage.General}
         defaultTool={CoreTools.selectElementCommand}
         toolSettings={<Zone widgets={[<Widget isToolSettings={true} />]} />}
         defaultLayout={this._contentLayoutDef1}
@@ -134,19 +136,12 @@ export class SampleFrontstage extends FrontstageProvider {
             ]}
           />
         }
-        // rightPanel={
-        //   <StagePanel
-        //     defaultState={StagePanelState.Open}
-        //     resizable={true}
-        //     applicationData={{ key: "value" }}
-        //     widgets={[<Widget element={<h3>Right panel</h3>} />]}
-        //   />
-        // }
         rightPanel={
           <StagePanel
-            resizable={false}
-            pinned={false}
-            allowedZones={[ZoneLocation.TopLeft]}
+            // resizable={true}
+            // pinned={true}
+            // defaultState={StagePanelState.Popup}
+            // allowedZones={[ZoneLocation.CenterRight]}
             widgets={[
               <Widget
                 control={TestWidget20212021}
@@ -165,11 +160,11 @@ export class SampleFrontstage extends FrontstageProvider {
           <StagePanel
             widgets={[
               <Widget
-                control={TestWidget20212021}
+                control={TreeWidget2021}
                 fillZone={true}
                 iconSpec="icon-tree"
-                labelKey="NineZoneSample:components.tree"
-                preferredPanelSize="fit-content"
+                labelKey="图层树"
+                tooltipKey="图层树"
                 applicationData={{
                   iModelConnection: UiFramework.getIModelConnection(),
                 }}

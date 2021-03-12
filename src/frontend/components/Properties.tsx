@@ -52,11 +52,17 @@ export default function SimplePropertiesComponent(props: Props) {
         isPropertyHoverEnabled={true}
         orientation={Orientation.Horizontal}
         horizontalOrientationMinWidth={500}
+        onPropertySelectionChanged={ProEvent}
+        isPropertySelectionEnabled={true}
       />
     );
   }
 
   return content;
+}
+
+async function ProEvent(_record: PropertyRecord) {
+  // window.open("www.baidu.com", "_blank")!.focus();
 }
 const value1: PropertyValue = {
   valueFormat: PropertyValueFormat.Primitive,

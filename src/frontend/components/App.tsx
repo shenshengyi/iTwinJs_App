@@ -17,10 +17,10 @@ import {
 import { Dialog, LoadingSpinner, SpinnerSize } from "@bentley/ui-core";
 import {
   ConfigurableUiContent,
+  FrameworkVersion,
   FrontstageManager,
   SessionStateActionId,
   SyncUiEventDispatcher,
-  SyncUiEventId,
   ThemeManager,
   ToolbarDragInteractionContext,
   UiFramework,
@@ -63,7 +63,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
     this._wantSnapshot = true;
 
     this.addSwitchStateSubscription();
-    const Identifier = AppUi.QueryiModelIdentifeier(2);
+    const Identifier = AppUi.QueryiModelIdentifeier(0);
     if (Identifier) {
       this._contextId = Identifier.contextId;
       this._imodelId = Identifier.imodelId;
@@ -99,7 +99,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
   private _onIModelOpened = async (imodel: IModelConnection | undefined) => {
     this.setState({ isOpening: false });
     if (!imodel) {
-      UiFramework.setIModelConnection(undefined,true);
+      UiFramework.setIModelConnection(undefined, true);
       return;
     }
     try {
@@ -108,7 +108,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
       if (viewState) {
         // Set the iModelConnection in the Redux store
         imodel.selectionSet.onChanged.addListener(CustomSelectEvent);
-        UiFramework.setIModelConnection(imodel,true);
+        UiFramework.setIModelConnection(imodel, true);
         UiFramework.setDefaultViewState(viewState[0]);
 
         // We create a FrontStage that contains the view that we want.
@@ -173,7 +173,7 @@ export default class AppComponent extends React.Component<{}, AppState> {
       SyncUiEventDispatcher.clearConnectionEvents(currentIModelConnection);
       if (currentIModelConnection.isSnapshot)
         await currentIModelConnection.close();
-      UiFramework.setIModelConnection(undefined,true);
+      UiFramework.setIModelConnection(undefined, true);
     }
   }
 
@@ -219,7 +219,9 @@ class IModelComponents extends React.PureComponent {
       <Provider store={NineZoneSampleApp.store}>
         <ThemeManager>
           <ToolbarDragInteractionContext.Provider value={false}>
-            <ConfigurableUiContent appBackstage={<AppBackstageComposer />} />
+            <FrameworkVersion version="2">
+              <ConfigurableUiContent appBackstage={<AppBackstageComposer />} />
+            </FrameworkVersion>
           </ToolbarDragInteractionContext.Provider>
         </ThemeManager>
       </Provider>

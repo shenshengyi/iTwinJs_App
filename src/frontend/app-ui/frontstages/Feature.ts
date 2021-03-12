@@ -279,22 +279,12 @@ async function ClearClip() {
   }
 }
 
-export async function CustomSelectEvent(ev: SelectionSetEvent) {
-  if (ev.type === SelectionSetEventType.Replace) {
-    const imodel = UiFramework.getIModelConnection()!;
-    if (typeof ev.added === "string") {
-      const id = ev.added.toString();
-      const prop = imodel.getRpcProps();
-      const parentId = await PropertiesRpcInterface.getClient().getParentElementId(
-        prop!,
-        id
-      );
-      if (parentId) {
-        imodel.selectionSet.emptyAll();
-        imodel.selectionSet.add(parentId);
-      }
-    }
-  }
+export async function CustomSelectEvent(_ev: SelectionSetEvent) {
+  // const imodel = UiFramework.getIModelConnection()!;
+  // const s = imodel.selectionSet.elements.size;
+  // if (s !== 1) {
+  //   imodel.selectionSet.emptyAll();
+  // }
 }
 async function ViewGlobeBirdToolRun() {
   IModelApp.tools.run(ViewGlobeBirdTool.toolId);
